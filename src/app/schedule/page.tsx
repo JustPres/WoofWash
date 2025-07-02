@@ -3,8 +3,10 @@ import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { LanguageContext } from "@/app/layout";
 import { registerServiceWorker, requestNotificationPermission, subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
+import Image from "next/image";
+import type { WeatherData } from "@/types/weather";
 
-const translations: Record<string, any> = {
+const translations: Record<string, Record<string, string>> = {
     en: {
         selectDog: "Select Dog:",
         remove: "Remove",
@@ -128,7 +130,7 @@ export default function Schedule() {
 
     const [dogs, setDogs] = useState<Array<{ name: string, breed?: string, origin?: string, furType?: string, country?: string, photo?: string, bathTimePref?: string }>>([]);
     const [selectedDogIdx, setSelectedDogIdx] = useState<number>(0);
-    const [weather, setWeather] = useState<any>(null);
+    const [weather, setWeather] = useState<WeatherData | null>(null);
     const [city, setCity] = useState<string>("");
     const [country, setCountry] = useState<string>("");
     const [error, setError] = useState<string>("");
@@ -143,7 +145,7 @@ export default function Schedule() {
     const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
 
     // Helper to get city/country for selected dog
-    const getDogLocation = (dog: any) => {
+    const getDogLocation = (dog: { origin?: string; country?: string }) => {
         let city = dog.origin ? dog.origin.split(",")[0].trim() : "";
         let country = dog.country || localStorage.getItem("country") || "";
         return { city, country };
@@ -293,8 +295,12 @@ export default function Schedule() {
                 await unsubscribeUserFromPush();
                 setNotifEnabled(false);
             }
-        } catch (err: any) {
-            setNotifError(err?.message || 'Notification error');
+        } catch (err) {
+            if (err instanceof Error) {
+                setNotifError(err.message);
+            } else {
+                setNotifError('Notification error');
+            }
         } finally {
             setNotifLoading(false);
         }
@@ -321,9 +327,14 @@ export default function Schedule() {
                 setWeather(data);
                 setLastUpdated(new Date().toLocaleString());
                 setLogs(l => [...l, `Weather refresh success at ${new Date().toLocaleTimeString()}`]);
-            } catch (e: any) {
-                setError(e.message);
-                setLogs(l => [...l, `Weather refresh error: ${e.message}`]);
+            } catch (e) {
+                if (e instanceof Error) {
+                    setError(e.message);
+                    setLogs(l => [...l, `Weather refresh error: ${e.message}`]);
+                } else {
+                    setError("Unknown error");
+                    setLogs(l => [...l, "Weather refresh error: Unknown error"]);
+                }
             }
         }
     };
@@ -440,10 +451,14 @@ export default function Schedule() {
                                 {/* Avatar */}
                                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-200 to-sky-400 flex items-center justify-center text-6xl shadow-lg mb-4 border-4 border-white group-hover:scale-110 group-hover:shadow-3xl transition-transform duration-300 overflow-hidden">
                                     {dogs[selectedDogIdx].photo ? (
-                                        <img
+                                        <Image
                                             src={dogs[selectedDogIdx].photo}
                                             alt="Dog photo"
                                             className="w-full h-full object-cover rounded-full"
+                                            width={96}
+                                            height={96}
+                                            style={{ objectFit: 'cover', borderRadius: '9999px' }}
+                                            priority
                                         />
                                     ) : (
                                         <span>🐶</span>
