@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { LanguageContext } from "@/app/layout";
-import { registerServiceWorker, requestNotificationPermission, subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
+import { registerServiceWorker, subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
 import Image from "next/image";
 import type { WeatherData } from "@/types/weather";
 
@@ -88,10 +88,7 @@ const countryList = [
     // Add more as needed
 ];
 
-function getCountryName(code: string) {
-    const found = countryList.find(c => c.code === code);
-    return found ? found.name : code;
-}
+
 
 async function fetchLatLon(city: string, country: string) {
     // Use Open-Meteo's geocoding API
@@ -114,15 +111,7 @@ async function fetchWeather(city: string, country: string) {
     }
 }
 
-const mockSchedule = [
-    { day: "Sun", time: "3–5 PM", icon: "☀️", reason: "Hot" },
-    { day: "Mon", time: "2–4 PM", icon: "☁️", reason: "Wet" },
-    { day: "Tue", time: "--", icon: "🌧️", reason: "Wet" },
-    { day: "Wed", time: "4–6 PM", icon: "☀️", reason: "Hot" },
-    { day: "Thu", time: "--", icon: "🌧️", reason: "Wet" },
-    { day: "Fri", time: "1–3 PM", icon: "☀️", reason: "Hot" },
-    { day: "Sat", time: "3–5 PM", icon: "☀️", reason: "Hot" },
-];
+
 
 export default function Schedule() {
     const { lang } = useContext(LanguageContext);
@@ -136,20 +125,12 @@ export default function Schedule() {
     const [error, setError] = useState<string>("");
     const [lastUpdated, setLastUpdated] = useState<string>("");
     const [logs, setLogs] = useState<string[]>([]);
-    const [showWeatherJson, setShowWeatherJson] = useState(false);
     const [notifEnabled, setNotifEnabled] = useState(false);
-    const [notifLoading, setNotifLoading] = useState(false);
-    const [notifError, setNotifError] = useState<string | null>(null);
 
     // Time of day for animated background
     const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
 
-    // Helper to get city/country for selected dog
-    const getDogLocation = (dog: { origin?: string; country?: string }) => {
-        let city = dog.origin ? dog.origin.split(",")[0].trim() : "";
-        let country = dog.country || localStorage.getItem("country") || "";
-        return { city, country };
-    };
+
 
     useEffect(() => {
         registerServiceWorker();
@@ -284,27 +265,7 @@ export default function Schedule() {
     };
 
 
-    const handleNotifToggle = async () => {
-        setNotifLoading(true);
-        setNotifError(null);
-        try {
-            if (!notifEnabled) {
-                await subscribeUserToPush();
-                setNotifEnabled(true);
-            } else {
-                await unsubscribeUserFromPush();
-                setNotifEnabled(false);
-            }
-        } catch (err) {
-            if (err instanceof Error) {
-                setNotifError(err.message);
-            } else {
-                setNotifError('Notification error');
-            }
-        } finally {
-            setNotifLoading(false);
-        }
-    };
+
 
     // Remove selected dog
     const handleRemoveDog = () => {
@@ -352,39 +313,10 @@ export default function Schedule() {
     // Add these keyframes to your global CSS or Tailwind config (see bottom of file for details)
 
     // For smooth transition between backgrounds, animate the background gradient
-    const [prevTimeOfDay, setPrevTimeOfDay] = useState(timeOfDay);
-    const [fade, setFade] = useState(false);
-    useEffect(() => {
-        if (timeOfDay !== prevTimeOfDay) {
-            setFade(true);
-            const timeout = setTimeout(() => {
-                setPrevTimeOfDay(timeOfDay);
-                setFade(false);
-            }, 1200); // match transition duration
-            return () => clearTimeout(timeout);
-        }
-    }, [timeOfDay, prevTimeOfDay]);
+
 
     // Determine sunrise/sunset from weather data or use defaults
-    let sunrise = 5.5; // 5:30am
-    let sunset = 17.5; // 5:30pm
-    if (weather && weather.daily && weather.daily.sunrise && weather.daily.sunset) {
-        // Use today's sunrise/sunset if available
-        const todayIdx = 0;
-        const sunriseStr = weather.daily.sunrise[todayIdx]; // e.g. '2025-07-01T05:32'
-        const sunsetStr = weather.daily.sunset[todayIdx];
-        if (sunriseStr && sunsetStr) {
-            const sunriseHour = Number(sunriseStr.split('T')[1].split(':')[0]);
-            const sunriseMin = Number(sunriseStr.split('T')[1].split(':')[1]);
-            const sunsetHour = Number(sunsetStr.split('T')[1].split(':')[0]);
-            const sunsetMin = Number(sunsetStr.split('T')[1].split(':')[1]);
-            sunrise = sunriseHour + sunriseMin / 60;
-            sunset = sunsetHour + sunsetMin / 60;
-        }
-    }
-    // Get current hour in user's local time
-    const now = new Date();
-    const hour = now.getHours() + now.getMinutes() / 60;
+
 
     return (
         <main className={`min-h-screen w-full flex flex-col items-center justify-center p-0 relative overflow-hidden transition-colors duration-1000 ${bgClass}`}>

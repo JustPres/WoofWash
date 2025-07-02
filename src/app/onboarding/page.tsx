@@ -87,7 +87,7 @@ export default function Onboarding() {
         if (stored) setLang(stored);
     }, []);
 
-    // Removed unused handleLangChange to fix ESLint error
+    // ...existing code...
 
     const handleChange = (idx: number, field: string, value: string) => {
         setDogs((prev) => {

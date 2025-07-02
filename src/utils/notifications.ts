@@ -15,7 +15,7 @@ export async function registerServiceWorker() {
         if (registration.active) return resolve(true);
         const sw = registration.installing || registration.waiting;
         if (!sw) return reject('No service worker installing or waiting');
-        sw.addEventListener('statechange', function listener(e) {
+        sw.addEventListener('statechange', function listener() {
             if (sw.state === 'activated') {
                 sw.removeEventListener('statechange', listener);
                 resolve(true);
