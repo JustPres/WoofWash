@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-import { LanguageContext } from "@/app/layout";
+import { LanguageContext } from "@/context/LanguageContext";
 import { registerServiceWorker } from "@/utils/notifications";
 import Image from "next/image";
 import type { WeatherData } from "@/types/weather";

@@ -1,7 +1,7 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
 import { subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
-import { LanguageContext } from "@/app/layout";
+import { LanguageContext } from "@/context/LanguageContext";
 import Link from "next/link";
 
 const languages = [
