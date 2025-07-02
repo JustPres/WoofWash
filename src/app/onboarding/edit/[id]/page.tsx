@@ -2,7 +2,7 @@
 import React, { useContext } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LanguageContext } from "@/app/layout";
+import { LanguageContext } from "@/context/LanguageContext";
 import Image from "next/image";
 
 const furTypes = [
@@ -87,7 +87,7 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
     const [formError, setFormError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const { lang } = useContext(LanguageContext);
+    const { lang } = useContext(LanguageContext) as { lang: string };
     const t = translations[lang] || translations.en;
 
     useEffect(() => {

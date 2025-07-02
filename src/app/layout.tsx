@@ -2,7 +2,8 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { createContext, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { LanguageContext } from "@/context/LanguageContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,12 +13,6 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-// Language context for global i18n
-export const LanguageContext = createContext({
-  lang: "en",
-  setLang: () => { },
 });
 
 export default function RootLayout({
