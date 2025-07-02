@@ -142,7 +142,7 @@ export default function Onboarding() {
             const city = dog.origin.split(",")[0].trim();
             const valid = await validateCityCountry(city, dog.country || country);
             if (!valid) {
-                setFormError(`City "${city}" not found in selected country.`);
+                setFormError("City &quot;" + city + "&quot; not found in selected country.");
                 return;
             }
         }
@@ -171,12 +171,12 @@ export default function Onboarding() {
                 window.location.assign("/schedule");
             }, 1200);
         } catch (err: any) {
-            if (err && err.name === 'QuotaExceededError') {
+            if (err && err.name === "QuotaExceededError") {
                 setFormError("Image or data is too large to save. Please use a smaller image or remove some dogs.");
             } else {
                 setFormError("Failed to save info. Please check your browser settings or use a smaller image.");
             }
-            console.error('[DEBUG] localStorage error:', err);
+            console.error("[DEBUG] localStorage error:", err);
         }
     };
 
@@ -243,7 +243,7 @@ export default function Onboarding() {
                                         {t.name}
                                         <span className="relative group cursor-pointer">
                                             <span className="text-sky-500 text-base">&#9432;</span>
-                                            <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Your dog's name for easy identification.</span>
+                                            <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Your dog&apos;s name for easy identification.</span>
                                         </span>
                                     </label>
                                     <input
@@ -259,7 +259,7 @@ export default function Onboarding() {
                                         {t.breed}
                                         <span className="relative group cursor-pointer">
                                             <span className="text-sky-500 text-base">&#9432;</span>
-                                            <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Breed helps us tailor bath advice for your dog's fur type.</span>
+                                            <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Breed helps us tailor bath advice for your dog&apos;s fur type.</span>
                                         </span>
                                     </label>
                                     <input
@@ -307,7 +307,7 @@ export default function Onboarding() {
                                 {t.country}
                                 <span className="relative group cursor-pointer">
                                     <span className="text-sky-500 text-base">&#9432;</span>
-                                    <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Select your dog's country. This helps us fetch accurate weather data for your dog's location.</span>
+                                    <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Select your dog&apos;s country. This helps us fetch accurate weather data for your dog&apos;s location.</span>
                                 </span>
                             </label>
                             <select className="w-full border p-2 rounded text-black bg-white/80 text-sm sm:text-base" value={dog.country} onChange={e => handleCountryChange(idx, e.target.value)}>
