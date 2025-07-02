@@ -44,8 +44,7 @@ export default function Home() {
 	const [notifLoading, setNotifLoading] = useState(false);
 	const [notifError, setNotifError] = useState<string | null>(null);
 
-	// DEBUG: Show VAPID public key for troubleshooting
-	const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
 
 	useEffect(() => {
 		if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -81,7 +80,6 @@ export default function Home() {
 
 	return (
 		<main className="min-h-screen bg-sky-50 flex flex-col items-center justify-center p-4" aria-label="Home page main content">
-			{/* DEBUG: Show VAPID public key for troubleshooting */}
 
 
 			<div className="absolute top-4 right-4 flex items-center gap-4">
