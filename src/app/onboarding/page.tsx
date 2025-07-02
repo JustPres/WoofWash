@@ -17,6 +17,48 @@ const countryList = [
     // Add more as needed
 ];
 
+const translations: Record<string, any> = {
+    en: {
+        addDog: "Add Dog",
+        name: "Name",
+        breed: "Breed",
+        origin: "Place of Birth/Origin",
+        furType: "Fur Type",
+        country: "Country",
+        save: "Save & Continue",
+        required: "Please fill in all fields.",
+        onboardingTitle: "Add Your Dog",
+        toast: "Dog(s) saved!",
+        language: "Language:"
+    },
+    fil: {
+        addDog: "Magdagdag ng Aso",
+        name: "Pangalan",
+        breed: "Lahi",
+        origin: "Lugar ng Kapanganakan/Pinagmulan",
+        furType: "Uri ng Balahibo",
+        country: "Bansa",
+        save: "I-save at Magpatuloy",
+        required: "Pakiusap punan lahat ng patlang.",
+        onboardingTitle: "Idagdag ang Iyong Aso",
+        toast: "Nai-save ang mga aso!",
+        language: "Wika:"
+    },
+    ja: {
+        addDog: "犬を追加",
+        name: "名前",
+        breed: "犬種",
+        origin: "出生地/原産地",
+        furType: "毛のタイプ",
+        country: "国",
+        save: "保存して続行",
+        required: "すべての項目を入力してください。",
+        onboardingTitle: "あなたの犬を追加",
+        toast: "犬が保存されました！",
+        language: "言語:"
+    }
+};
+
 function convertTo24Hour(time12h: string) {
     // Accepts e.g. '2:30 PM' or '2 PM' or '14:00'
     const match = time12h.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);
@@ -31,12 +73,24 @@ function convertTo24Hour(time12h: string) {
 
 export default function Onboarding() {
     const [dogs, setDogs] = useState([
-        { name: "", breed: "", origin: "", furType: "", country: "PH" }
+        { name: "", breed: "", origin: "", furType: "", country: "PH", photo: "" }
     ]);
     const [country, setCountry] = useState("PH");
     const [timeInput, setTimeInput] = useState("");
     const [convertedTime, setConvertedTime] = useState("");
     const [showToast, setShowToast] = useState(false);
+    const [lang, setLang] = useState("en");
+    const t = translations[lang] || translations.en;
+
+    useEffect(() => {
+        const stored = localStorage.getItem("lang");
+        if (stored) setLang(stored);
+    }, []);
+
+    const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLang(e.target.value);
+        localStorage.setItem("lang", e.target.value);
+    };
 
     const handleChange = (idx: number, field: string, value: string) => {
         setDogs((prev) => {
@@ -54,8 +108,9 @@ export default function Onboarding() {
         });
     };
 
+    // Update addDog to include photo
     const addDog = () => {
-        setDogs((prev) => [...prev, { name: "", breed: "", origin: "", furType: "", country }]);
+        setDogs((prev) => [...prev, { name: "", breed: "", origin: "", furType: "", country, photo: "" }]);
     };
 
     const removeDog = (idx: number) => {
@@ -114,8 +169,13 @@ export default function Onboarding() {
                 setShowToast(false);
                 window.location.assign("/schedule");
             }, 1200);
-        } catch (err) {
-            setFormError("Failed to save info. Please check your browser settings.");
+        } catch (err: any) {
+            if (err && err.name === 'QuotaExceededError') {
+                setFormError("Image or data is too large to save. Please use a smaller image or remove some dogs.");
+            } else {
+                setFormError("Failed to save info. Please check your browser settings or use a smaller image.");
+            }
+            console.error('[DEBUG] localStorage error:', err);
         }
     };
 
@@ -123,18 +183,63 @@ export default function Onboarding() {
         <main className="min-h-screen w-full bg-gradient-to-br from-sky-200/60 via-white/80 to-sky-400/60 flex flex-col items-center justify-center p-0">
             {showToast && (
                 <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-base animate-fade-in">
-                    Dog(s) saved!
+                    {t.toast}
                 </div>
             )}
             <div className="w-full max-w-2xl min-h-[70vh] bg-white/40 backdrop-blur-md rounded-none sm:rounded-2xl shadow-2xl p-2 sm:p-12 border border-white/30 flex flex-col">
-                <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-sky-900 drop-shadow text-center">Tell us about your dog(s)</h2>
+                {/* Back Button */}
+                <button
+                    type="button"
+                    onClick={() => window.history.back()}
+                    className="mb-4 w-fit px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 font-semibold shadow focus:outline-none focus:ring-2 focus:ring-sky-400"
+                    aria-label="Back"
+                >
+                    ← Back
+                </button>
+                <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-sky-900 drop-shadow text-center">{t.onboardingTitle}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     {dogs.map((dog, idx) => (
                         <div key={idx} className="bg-white/60 backdrop-blur rounded-xl p-2 sm:p-4 mb-2 border border-white/30 shadow flex flex-col gap-2 relative">
+                            {/* Dog Photo Upload */}
+                            <label className="block mb-1 font-semibold flex items-center gap-1 text-black text-sm sm:text-base">
+                                Photo (optional)
+                                <span className="relative group cursor-pointer">
+                                    <span className="text-sky-500 text-base">&#9432;</span>
+                                    <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-56 border border-sky-200">Upload a small photo of your dog. Images are stored in your browser (max 5MB total for all dogs).</span>
+                                </span>
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="w-full border p-2 rounded text-black bg-white/80 text-sm sm:text-base"
+                                onChange={async e => {
+                                    const file = e.target.files?.[0];
+                                    console.log('[DEBUG] Selected file:', file);
+                                    if (!file) return;
+                                    console.log('[DEBUG] File size (bytes):', file.size);
+                                    if (file.size > 10 * 1024 * 1024) {
+                                        alert('Please select an image smaller than 10MB.');
+                                        return;
+                                    }
+                                    const reader = new FileReader();
+                                    reader.onload = ev => {
+                                        console.log('[DEBUG] File loaded, setting photo.');
+                                        handleChange(idx, "photo", ev.target?.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                }}
+                            />
+                            {(() => {
+                                console.log('[DEBUG] Rendering dog.photo:', dog.photo);
+                                return dog.photo ? (
+                                    <img src={dog.photo} alt="Dog photo preview" className="w-20 h-20 object-cover rounded-full border-2 border-sky-200 mt-2" />
+                                ) : null;
+                            })()}
+                            <div className="text-xs text-gray-500 mt-1">Images are stored in your browser (max 5MB total for all dogs).</div>
                             <div className="flex flex-col sm:flex-row gap-2">
                                 <div className="flex-1 min-w-0">
                                     <label className="block mb-1 font-semibold flex items-center gap-1 text-black text-sm sm:text-base">
-                                        Name
+                                        {t.name}
                                         <span className="relative group cursor-pointer">
                                             <span className="text-sky-500 text-base">&#9432;</span>
                                             <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Your dog's name for easy identification.</span>
@@ -150,7 +255,7 @@ export default function Onboarding() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <label className="block mb-1 font-semibold flex items-center gap-1 text-black text-sm sm:text-base">
-                                        Breed
+                                        {t.breed}
                                         <span className="relative group cursor-pointer">
                                             <span className="text-sky-500 text-base">&#9432;</span>
                                             <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Breed helps us tailor bath advice for your dog's fur type.</span>
@@ -166,7 +271,7 @@ export default function Onboarding() {
                                 </div>
                             </div>
                             <label className="block mb-1 font-semibold flex items-center gap-1 text-black text-sm sm:text-base">
-                                Place of Birth/Origin
+                                {t.origin}
                                 <span className="relative group cursor-pointer">
                                     <span className="text-sky-500 text-base">&#9432;</span>
                                     <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-56 border border-sky-200">Enter the city or town where your dog is from. This is used to fetch local weather for the bath schedule.</span>
@@ -180,7 +285,7 @@ export default function Onboarding() {
                                 required
                             />
                             <label className="block mb-1 font-semibold flex items-center gap-1 text-black text-sm sm:text-base">
-                                Fur Type
+                                {t.furType}
                                 <span className="relative group cursor-pointer">
                                     <span className="text-sky-500 text-base">&#9432;</span>
                                     <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-56 border border-sky-200">Fur type affects how often your dog should be bathed. Choose the closest match.</span>
@@ -198,7 +303,7 @@ export default function Onboarding() {
                                 ))}
                             </select>
                             <label className="block mb-1 font-semibold flex items-center gap-1 text-black text-sm sm:text-base">
-                                Country
+                                {t.country}
                                 <span className="relative group cursor-pointer">
                                     <span className="text-sky-500 text-base">&#9432;</span>
                                     <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-48 border border-sky-200">Select your dog's country. This helps us fetch accurate weather data for your dog's location.</span>
@@ -212,7 +317,7 @@ export default function Onboarding() {
                             )}
                         </div>
                     ))}
-                    <button type="button" onClick={addDog} className="w-full mb-2 py-2 bg-sky-200/80 text-sky-900 rounded hover:bg-sky-300/90 font-semibold shadow text-base sm:text-lg">+ Add Another Dog</button>
+                    <button type="button" onClick={addDog} className="w-full mb-2 py-2 bg-sky-200/80 text-sky-900 rounded hover:bg-sky-300/90 font-semibold shadow text-base sm:text-lg">{t.addDog}</button>
                     <label className="block mb-1 font-semibold flex items-center gap-1 text-black mt-2 text-sm sm:text-base">
                         Bath Time (optional)
                         <span className="relative group cursor-pointer">
@@ -233,7 +338,7 @@ export default function Onboarding() {
                         <div className="text-xs text-sky-700 mt-1">24-hour format: <span className="font-mono">{convertedTime}</span></div>
                     )}
                     {formError && <div className="text-red-500 text-sm mb-2">{formError}</div>}
-                    <button type="submit" className="w-full py-2 bg-sky-600 text-white rounded hover:bg-sky-700 font-bold shadow text-base sm:text-lg">Save & Continue</button>
+                    <button type="submit" className="w-full py-2 bg-sky-600 text-white rounded hover:bg-sky-700 font-bold shadow text-base sm:text-lg">{t.save}</button>
                 </form>
             </div>
         </main>

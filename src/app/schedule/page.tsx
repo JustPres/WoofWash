@@ -1,7 +1,83 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { registerServiceWorker, requestNotificationPermission } from "@/utils/notifications";
+import { useContext, useEffect, useState } from "react";
+import { LanguageContext } from "@/app/layout";
+import { registerServiceWorker, requestNotificationPermission, subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
+
+const translations: Record<string, any> = {
+    en: {
+        selectDog: "Select Dog:",
+        remove: "Remove",
+        addDog: "+ Add Dog",
+        weeklyBath: "Weekly Bath Schedule",
+        for: "For:",
+        city: "City:",
+        country: "Country:",
+        lastUpdated: "Last updated:",
+        loadingWeather: "Loading weather...",
+        noDogs: "No dogs found",
+        addDogInfo: "To view your dog’s bath schedule, please add your dog’s information first.",
+        editDog: "Edit Dog Info",
+        home: "Home",
+        enableNotif: "🔕 Enable Notifications",
+        notifEnabled: "🔔 Enabled",
+        refreshWeather: "⟳ Refresh Weather",
+        removeDogConfirm: "Remove",
+        notSet: "Not set",
+        whyBest: "Best for dog baths: warm and dry.",
+        whyOk: "Okay for baths: not rainy.",
+        whyNo: "Not recommended: wet or rainy.",
+        debug: "Debug/Logs:",
+    },
+    fil: {
+        selectDog: "Pumili ng Aso:",
+        remove: "Tanggalin",
+        addDog: "+ Magdagdag ng Aso",
+        weeklyBath: "Lingguhang Iskedyul ng Paliligo",
+        for: "Para kay:",
+        city: "Lungsod:",
+        country: "Bansa:",
+        lastUpdated: "Huling update:",
+        loadingWeather: "Ikinakarga ang panahon...",
+        noDogs: "Walang asong natagpuan",
+        addDogInfo: "Upang makita ang iskedyul ng paliligo, magdagdag muna ng impormasyon ng iyong aso.",
+        editDog: "I-edit ang Impormasyon ng Aso",
+        home: "Home",
+        enableNotif: "🔕 I-enable ang Notipikasyon",
+        notifEnabled: "🔔 Naka-enable",
+        refreshWeather: "⟳ I-refresh ang Panahon",
+        removeDogConfirm: "Tanggalin",
+        notSet: "Hindi nakalagay",
+        whyBest: "Pinakamainam para sa paliligo: mainit at tuyo.",
+        whyOk: "Pwede para sa paliligo: hindi maulan.",
+        whyNo: "Hindi inirerekomenda: basa o maulan.",
+        debug: "Debug/Logs:",
+    },
+    ja: {
+        selectDog: "犬を選択:",
+        remove: "削除",
+        addDog: "+ 犬を追加",
+        weeklyBath: "週間入浴スケジュール",
+        for: "対象:",
+        city: "都市:",
+        country: "国:",
+        lastUpdated: "最終更新:",
+        loadingWeather: "天気を読み込み中...",
+        noDogs: "犬が見つかりません",
+        addDogInfo: "犬の入浴スケジュールを見るには、まず犬の情報を追加してください。",
+        editDog: "犬の情報を編集",
+        home: "ホーム",
+        enableNotif: "🔕 通知を有効化",
+        notifEnabled: "🔔 有効化済み",
+        refreshWeather: "⟳ 天気を更新",
+        removeDogConfirm: "削除",
+        notSet: "未設定",
+        whyBest: "入浴に最適：暖かく乾燥。",
+        whyOk: "入浴OK：雨でない。",
+        whyNo: "おすすめしません：雨や湿気。",
+        debug: "デバッグ/ログ:",
+    },
+};
 
 const countryList = [
     { code: "PH", name: "Philippines" },
@@ -47,7 +123,10 @@ const mockSchedule = [
 ];
 
 export default function Schedule() {
-    const [dogs, setDogs] = useState<{ name: string, origin?: string, country?: string }[]>([]);
+    const { lang } = useContext(LanguageContext);
+    const t = translations[lang] || translations.en;
+
+    const [dogs, setDogs] = useState<Array<{ name: string, breed?: string, origin?: string, furType?: string, country?: string, photo?: string, bathTimePref?: string }>>([]);
     const [selectedDogIdx, setSelectedDogIdx] = useState<number>(0);
     const [weather, setWeather] = useState<any>(null);
     const [city, setCity] = useState<string>("");
@@ -57,6 +136,11 @@ export default function Schedule() {
     const [logs, setLogs] = useState<string[]>([]);
     const [showWeatherJson, setShowWeatherJson] = useState(false);
     const [notifEnabled, setNotifEnabled] = useState(false);
+    const [notifLoading, setNotifLoading] = useState(false);
+    const [notifError, setNotifError] = useState<string | null>(null);
+
+    // Time of day for animated background
+    const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
 
     // Helper to get city/country for selected dog
     const getDogLocation = (dog: any) => {
@@ -96,8 +180,8 @@ export default function Schedule() {
                     setCountry(parsed[idx].country);
                 }
             }
-            // Remove selectedDogIdx after use
-            localStorage.removeItem("selectedDogIdx");
+            // Do NOT remove selectedDogIdx after use; keep it persistent
+            // if (cityFromOrigin && country) {
             if (cityFromOrigin && country) {
                 setLogs(l => [...l, `Fetching weather for ${cityFromOrigin}, ${country}`]);
                 fetchWeather(cityFromOrigin, country)
@@ -138,24 +222,88 @@ export default function Schedule() {
         }
     }, [selectedDogIdx]);
 
+    // Auto-refresh weather every 5 minutes
+    useEffect(() => {
+        if (!city || !country) return;
+        const interval = setInterval(() => {
+            fetchWeather(city, country)
+                .then(data => {
+                    setWeather(data);
+                    setLastUpdated(new Date().toLocaleString());
+                    setLogs(l => [...l, `Auto weather refresh at ${new Date().toLocaleTimeString()}`]);
+                })
+                .catch((e) => {
+                    setError(e.message);
+                    setLogs(l => [...l, `Auto weather refresh error: ${e.message}`]);
+                });
+        }, 5 * 60 * 1000); // 5 minutes
+        return () => clearInterval(interval);
+    }, [city, country]);
+
+    // On mount or refresh, fetch weather after 2 seconds
+    useEffect(() => {
+        if (!city || !country) return;
+        const timeout = setTimeout(() => {
+            setLogs(l => [...l, `Initial delayed weather fetch for ${city}, ${country}`]);
+            fetchWeather(city, country)
+                .then(data => {
+                    setWeather(data);
+                    setLastUpdated(new Date().toLocaleString());
+                    setLogs(l => [...l, `Initial delayed weather fetch success at ${new Date().toLocaleTimeString()}`]);
+                })
+                .catch((e) => {
+                    setError(e.message);
+                    setLogs(l => [...l, `Initial delayed weather fetch error: ${e.message}`]);
+                });
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [city, country]);
+
+    // Time of day for animated background
+    useEffect(() => {
+        const getTimeOfDay = () => {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 11) return 'morning';
+            if (hour >= 11 && hour < 17) return 'afternoon';
+            if (hour >= 17 && hour < 20) return 'evening';
+            return 'night';
+        };
+        setTimeOfDay(getTimeOfDay());
+        const interval = setInterval(() => setTimeOfDay(getTimeOfDay()), 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
+
     const handleDogChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedDogIdx(Number(e.target.value));
+        const idx = Number(e.target.value);
+        setSelectedDogIdx(idx);
+        if (typeof window !== "undefined") {
+            localStorage.setItem("selectedDogIdx", String(idx));
+        }
     };
 
-    const handleNotify = async () => {
-        const granted = await requestNotificationPermission();
-        setNotifEnabled(granted);
-        if (granted) {
-            alert("Notifications enabled! You'll get reminders for your dog's bath schedule (if supported by your browser).");
-        } else {
-            alert("Notifications are blocked or not supported.");
+
+    const handleNotifToggle = async () => {
+        setNotifLoading(true);
+        setNotifError(null);
+        try {
+            if (!notifEnabled) {
+                await subscribeUserToPush();
+                setNotifEnabled(true);
+            } else {
+                await unsubscribeUserFromPush();
+                setNotifEnabled(false);
+            }
+        } catch (err: any) {
+            setNotifError(err?.message || 'Notification error');
+        } finally {
+            setNotifLoading(false);
         }
     };
 
     // Remove selected dog
     const handleRemoveDog = () => {
         if (dogs.length <= 1) return;
-        if (confirm(`Remove ${dogs[selectedDogIdx].name}?`)) {
+        if (confirm(`${t.removeDogConfirm} ${dogs[selectedDogIdx].name}?`)) {
             const updatedDogs = dogs.filter((_, i) => i !== selectedDogIdx);
             setDogs(updatedDogs);
             localStorage.setItem("dogs", JSON.stringify(updatedDogs));
@@ -180,20 +328,89 @@ export default function Schedule() {
         }
     };
 
+    // Remove Vanta.js/three.js code and use a CSS/Tailwind animated background
+    // Dynamic background classes based on time of day
+    const bgClass = {
+        morning: 'bg-gradient-to-b from-sky-200 via-yellow-100 to-white',
+        afternoon: 'bg-gradient-to-b from-sky-300 via-sky-100 to-white',
+        evening: 'bg-gradient-to-b from-indigo-400 via-pink-200 to-yellow-100',
+        night: 'bg-gradient-to-b from-blue-900 via-slate-800 to-black',
+    }[timeOfDay];
+
+    // Animated overlays for sun/moon at top left, clouds, stars
+    // Add these keyframes to your global CSS or Tailwind config (see bottom of file for details)
+
+    // For smooth transition between backgrounds, animate the background gradient
+    const [prevTimeOfDay, setPrevTimeOfDay] = useState(timeOfDay);
+    const [fade, setFade] = useState(false);
+    useEffect(() => {
+        if (timeOfDay !== prevTimeOfDay) {
+            setFade(true);
+            const timeout = setTimeout(() => {
+                setPrevTimeOfDay(timeOfDay);
+                setFade(false);
+            }, 1200); // match transition duration
+            return () => clearTimeout(timeout);
+        }
+    }, [timeOfDay, prevTimeOfDay]);
+
+    // Determine sunrise/sunset from weather data or use defaults
+    let sunrise = 5.5; // 5:30am
+    let sunset = 17.5; // 5:30pm
+    if (weather && weather.daily && weather.daily.sunrise && weather.daily.sunset) {
+        // Use today's sunrise/sunset if available
+        const todayIdx = 0;
+        const sunriseStr = weather.daily.sunrise[todayIdx]; // e.g. '2025-07-01T05:32'
+        const sunsetStr = weather.daily.sunset[todayIdx];
+        if (sunriseStr && sunsetStr) {
+            const sunriseHour = Number(sunriseStr.split('T')[1].split(':')[0]);
+            const sunriseMin = Number(sunriseStr.split('T')[1].split(':')[1]);
+            const sunsetHour = Number(sunsetStr.split('T')[1].split(':')[0]);
+            const sunsetMin = Number(sunsetStr.split('T')[1].split(':')[1]);
+            sunrise = sunriseHour + sunriseMin / 60;
+            sunset = sunsetHour + sunsetMin / 60;
+        }
+    }
+    // Get current hour in user's local time
+    const now = new Date();
+    const hour = now.getHours() + now.getMinutes() / 60;
+
     return (
-        <main className="min-h-screen w-full bg-gradient-to-br from-sky-200/60 via-white/80 to-sky-400/60 flex flex-col items-center justify-center p-0">
-            <div className="w-full min-h-screen flex flex-col items-center justify-center">
+        <main className={`min-h-screen w-full flex flex-col items-center justify-center p-0 relative overflow-hidden transition-colors duration-1000 ${bgClass}`}>
+            {/* Animated overlays: clouds for morning, stars for evening/night */}
+            {timeOfDay === 'morning' && (
+                <>
+                    <div className="absolute top-20 left-0 w-48 h-16 bg-white/70 rounded-full blur-md animate-cloud-move z-0" />
+                    <div className="absolute top-32 left-1/3 w-32 h-12 bg-white/60 rounded-full blur-sm animate-cloud-move z-0" style={{ animationDuration: '60s', animationDelay: '10s' }} />
+                </>
+            )}
+            {(timeOfDay === 'evening' || timeOfDay === 'night') && (
+                <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+                    {[...Array(40)].map((_, i) => (
+                        <div key={i} className={`absolute bg-white rounded-full ${i % 2 === 0 ? 'animate-star-twinkle' : 'animate-star-twinkle2'}`} style={{
+                            width: `${Math.random() * 2 + 1}px`,
+                            height: `${Math.random() * 2 + 1}px`,
+                            top: `${Math.random() * 90}%`,
+                            left: `${Math.random() * 98}%`,
+                            animationDuration: timeOfDay === 'evening' ? '6s' : '3.5s',
+                            animationDelay: `${Math.random() * 2}s`,
+                        }} />
+                    ))}
+                </div>
+            )}
+            {/* Main content wrapper (above overlays) */}
+            <div className="w-full min-h-screen flex flex-col items-center justify-center relative z-20">
                 {/* Dog picker card */}
                 {dogs.length > 0 && (
-                    <div className="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between bg-white/60 backdrop-blur rounded-xl shadow border border-white/30 p-2 sm:p-4 mb-6 mt-8 gap-2">
-                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <div className="w-full max-w-4xl flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-between bg-white/60 backdrop-blur rounded-xl shadow border border-white/30 p-2 sm:p-4 mb-6 mt-8 gap-3 sm:gap-2">
+                        <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 sm:gap-2">
                             <span className="text-2xl">🐶</span>
-                            <label htmlFor="dog-picker" className="text-black font-bold text-lg">Select Dog:</label>
+                            <label htmlFor="dog-picker" className="text-black font-bold text-lg w-full sm:w-auto text-center sm:text-left">{t.selectDog}</label>
                             <select
                                 id="dog-picker"
                                 value={selectedDogIdx}
                                 onChange={handleDogChange}
-                                className="rounded px-2 py-1 border border-sky-300 bg-white/80 text-sky-900 font-semibold shadow focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm sm:text-base"
+                                className="rounded px-2 py-1 border border-sky-300 bg-white/80 text-sky-900 font-semibold shadow focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm sm:text-base w-full sm:w-auto"
                             >
                                 {dogs.map((d, i) => (
                                     <option key={i} value={i}>{d.name}</option>
@@ -203,38 +420,144 @@ export default function Schedule() {
                                 <button
                                     type="button"
                                     onClick={handleRemoveDog}
-                                    className="ml-0 sm:ml-2 mt-2 sm:mt-0 px-3 py-1 rounded bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 font-semibold text-xs shadow"
-                                    title="Remove selected dog"
+                                    className="w-full sm:w-auto px-3 py-1 flex items-center justify-center rounded bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 font-semibold text-xs shadow mt-2 sm:mt-0"
+                                    title={t.remove}
                                 >
-                                    Remove
+                                    {t.remove}
                                 </button>
                             )}
                         </div>
-                        <Link href="/onboarding" className="w-full sm:w-auto mt-2 sm:mt-0 px-4 py-1 bg-sky-200 text-sky-900 rounded hover:bg-sky-300 font-semibold shadow border border-sky-300 text-center">+ Add Dog</Link>
+                        <Link href="/onboarding" className="w-full sm:w-auto mt-2 sm:mt-0 px-4 py-1 bg-sky-200 text-sky-900 rounded hover:bg-sky-300 font-semibold shadow border border-sky-300 text-center">{t.addDog}</Link>
                     </div>
                 )}
                 <div className="w-full max-w-4xl min-h-[80vh] bg-white/40 backdrop-blur-md rounded-none sm:rounded-2xl shadow-2xl p-2 sm:p-12 border border-white/30 flex flex-col">
-                    <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-sky-900 drop-shadow text-center">Weekly Bath Schedule</h2>
-                    {dogs.length === 1 && (
-                        <div className="mb-2 text-sky-800 font-semibold text-lg text-center sm:text-left">For: {dogs[0].name}</div>
-                    )}
-                    <div className="mb-2 text-sky-700 text-base text-center sm:text-left">City: <span className="font-semibold">{city || <span className='italic text-gray-400'>Not set</span>}</span></div>
-                    <div className="mb-2 text-sky-700 text-base text-center sm:text-left">Country: <span className="font-semibold">{country}</span> <span className="text-xs text-gray-500">({getCountryName(country)})</span></div>
-                    {lastUpdated && <div className="mb-2 text-xs text-gray-500 text-center sm:text-left">Last updated: {lastUpdated}</div>}
-                    {error && <div className="text-red-500 mb-2 text-center sm:text-left">{error}</div>}
-                    {weather ? (
-                        <div className="mb-4">
-                            <div className="text-sky-900 font-bold mb-1 text-lg text-center sm:text-left">
-                                Today: {weather.current_weather.temperature}°C, Code: {weather.current_weather.weathercode}
+                    <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-sky-900 drop-shadow text-center">{t.weeklyBath}</h2>
+                    {/* Show selected dog name if available */}
+                    {dogs.length > 0 && dogs[selectedDogIdx] && weather && (
+                        <div className="mb-4 w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center sm:items-stretch justify-center sm:justify-between gap-4 sm:gap-10">
+                            {/* Dog Info Card (modern glassmorphism, left) */}
+                            <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl border border-sky-100 p-8 flex flex-col w-full max-w-xs sm:w-auto items-center relative overflow-hidden mb-4 sm:mb-0 transition-transform duration-300 hover:scale-105 hover:shadow-3xl hover:border-sky-300">
+                                {/* Avatar */}
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-200 to-sky-400 flex items-center justify-center text-6xl shadow-lg mb-4 border-4 border-white group-hover:scale-110 group-hover:shadow-3xl transition-transform duration-300 overflow-hidden">
+                                    {dogs[selectedDogIdx].photo ? (
+                                        <img
+                                            src={dogs[selectedDogIdx].photo}
+                                            alt="Dog photo"
+                                            className="w-full h-full object-cover rounded-full"
+                                        />
+                                    ) : (
+                                        <span>🐶</span>
+                                    )}
+                                </div>
+                                {/* Name */}
+                                <div className="text-2xl font-extrabold text-sky-800 mb-2 text-center w-full truncate group-hover:text-sky-600 transition-colors duration-300">{dogs[selectedDogIdx].name}</div>
+                                {/* Badges */}
+                                <div className="flex flex-wrap gap-2 justify-center mb-3 w-full">
+                                    {dogs[selectedDogIdx].breed && <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">{dogs[selectedDogIdx].breed}</span>}
+                                    {dogs[selectedDogIdx].furType && <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">{dogs[selectedDogIdx].furType}</span>}
+                                    {dogs[selectedDogIdx].country && (
+                                        <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">
+                                            {dogs[selectedDogIdx].country}
+                                        </span>
+                                    )}
+                                </div>
+                                {/* Origin/City */}
+                                <div className="text-sm text-gray-500 mb-1 w-full text-center">{dogs[selectedDogIdx].origin || <span className='italic text-gray-400'>No city/origin</span>}</div>
+                                {/* Last updated */}
+                                <div className="absolute bottom-3 right-4 text-xs text-gray-400 font-mono">{lastUpdated && (<span title="Last updated">{lastUpdated}</span>)}</div>
                             </div>
-                            <div className="text-sky-700 text-sm text-center sm:text-left">
-                                Max: {weather.daily.temperature_2m_max[0]}°C, Min: {weather.daily.temperature_2m_min[0]}°C | Precip: {weather.daily.precipitation_sum[0]}mm
+                            {/* Weather Summary Card (modern glassmorphism, right, with micro-interactions) */}
+                            <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl border border-sky-100 p-8 flex flex-col w-full max-w-xs sm:w-auto items-center justify-center relative overflow-hidden group transition-transform duration-300 hover:scale-105 hover:shadow-3xl">
+                                {/* Weather Icon with micro-interaction */}
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-300 to-sky-500 flex items-center justify-center text-6xl shadow-lg mb-4 border-4 border-white animate-pulse-slow group-hover:animate-bounce-slow transition-all duration-300">
+                                    <span>{(() => {
+                                        const code: number = Number(weather.current_weather.weathercode);
+                                        const weatherCodeMap: Record<number, { icon: string }> = {
+                                            0: { icon: '☀️' },
+                                            1: { icon: '🌤️' },
+                                            2: { icon: '⛅' },
+                                            3: { icon: '☁️' },
+                                            45: { icon: '🌫️' },
+                                            48: { icon: '🌫️' },
+                                            51: { icon: '🌦️' },
+                                            53: { icon: '🌦️' },
+                                            55: { icon: '🌦️' },
+                                            56: { icon: '🌧️' },
+                                            57: { icon: '🌧️' },
+                                            61: { icon: '🌦️' },
+                                            63: { icon: '🌧️' },
+                                            65: { icon: '🌧️' },
+                                            66: { icon: '🌧️' },
+                                            67: { icon: '🌧️' },
+                                            71: { icon: '❄️' },
+                                            73: { icon: '❄️' },
+                                            75: { icon: '❄️' },
+                                            77: { icon: '❄️' },
+                                            80: { icon: '🌦️' },
+                                            81: { icon: '🌧️' },
+                                            82: { icon: '🌧️' },
+                                            85: { icon: '❄️' },
+                                            86: { icon: '❄️' },
+                                            95: { icon: '⛈️' },
+                                            96: { icon: '⛈️' },
+                                            99: { icon: '⛈️' },
+                                        };
+                                        return weatherCodeMap[code as keyof typeof weatherCodeMap]?.icon || '❓';
+                                    })()}</span>
+                                </div>
+                                {/* Temperature */}
+                                <div className="text-4xl font-extrabold text-sky-800 mb-1 text-center w-full drop-shadow group-hover:text-sky-600 transition-colors duration-300">{weather.current_weather.temperature}°C</div>
+                                {/* Description */}
+                                <div className="text-lg font-semibold text-gray-700 mb-3 text-center w-full group-hover:text-sky-700 transition-colors duration-300">{(() => {
+                                    const code: number = Number(weather.current_weather.weathercode);
+                                    const weatherCodeMap: Record<number, { desc: string }> = {
+                                        0: { desc: 'Clear sky' },
+                                        1: { desc: 'Mainly clear' },
+                                        2: { desc: 'Partly cloudy' },
+                                        3: { desc: 'Overcast' },
+                                        45: { desc: 'Fog' },
+                                        48: { desc: 'Depositing rime fog' },
+                                        51: { desc: 'Drizzle: Light' },
+                                        53: { desc: 'Drizzle: Moderate' },
+                                        55: { desc: 'Drizzle: Dense' },
+                                        56: { desc: 'Freezing Drizzle: Light' },
+                                        57: { desc: 'Freezing Drizzle: Dense' },
+                                        61: { desc: 'Rain: Slight' },
+                                        63: { desc: 'Rain: Moderate' },
+                                        65: { desc: 'Rain: Heavy' },
+                                        66: { desc: 'Freezing Rain: Light' },
+                                        67: { desc: 'Freezing Rain: Heavy' },
+                                        71: { desc: 'Snow fall: Slight' },
+                                        73: { desc: 'Snow fall: Moderate' },
+                                        75: { desc: 'Snow fall: Heavy' },
+                                        77: { desc: 'Snow grains' },
+                                        80: { desc: 'Rain showers: Slight' },
+                                        81: { desc: 'Rain showers: Moderate' },
+                                        82: { desc: 'Rain showers: Violent' },
+                                        85: { desc: 'Snow showers: Slight' },
+                                        86: { desc: 'Snow showers: Heavy' },
+                                        95: { desc: 'Thunderstorm' },
+                                        96: { desc: 'Thunderstorm: Hail' },
+                                        99: { desc: 'Thunderstorm: Heavy hail' },
+                                    };
+                                    return weatherCodeMap[code as keyof typeof weatherCodeMap]?.desc || 'Unknown';
+                                })()}</div>
+                                {/* Weather Stats Badges */}
+                                <div className="flex flex-row gap-2 justify-center w-full mb-2">
+                                    <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
+                                        <span className="font-bold">Max</span>
+                                        {weather.daily.temperature_2m_max[0]}°C
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
+                                        <span className="font-bold">Min</span>
+                                        {weather.daily.temperature_2m_min[0]}°C
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
+                                        <span className="font-bold">💧</span>
+                                        {weather.daily.precipitation_sum[0]} mm
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="mb-4 flex items-center gap-2 text-sky-700 justify-center">
-                            <svg className="animate-spin h-5 w-5 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-                            Loading weather...
                         </div>
                     )}
                     {/* Real schedule from API, now inside the main container and with time */}
@@ -242,10 +565,20 @@ export default function Schedule() {
                         <div className="flex flex-wrap justify-between mb-4 gap-2">
                             {weather.daily.time.map((date: string, idx: number) => {
                                 const day = new Date(date).toLocaleDateString(undefined, { weekday: 'short' });
-                                // Find all hourly indices for this day between 13:00 and 17:00
+                                // Get bath time preference for selected dog
+                                const bathTimePref = dogs[selectedDogIdx]?.bathTimePref || "morning";
+                                // Set hour range based on preference
+                                let hourStart = 9, hourEnd = 17;
+                                if (bathTimePref === "morning") { hourStart = 9; hourEnd = 12; }
+                                else if (bathTimePref === "afternoon") { hourStart = 12; hourEnd = 17; }
+                                // For custom, keep 9-17 for now (can be extended)
                                 const hours = weather.hourly.time
                                     .map((t: string, i: number) => ({ t, i }))
-                                    .filter((hour: { t: string, i: number }) => hour.t.startsWith(date + 'T') && [13, 14, 15, 16, 17].includes(Number(hour.t.split('T')[1].split(':')[0])));
+                                    .filter((hour: { t: string, i: number }) => {
+                                        if (!hour.t.startsWith(date + 'T')) return false;
+                                        const hourNum = Number(hour.t.split('T')[1].split(':')[0]);
+                                        return hourNum >= hourStart && hourNum <= hourEnd;
+                                    });
                                 // Check if any hour in this window is hot and dry
                                 let found = null;
                                 for (const hour of hours) {
@@ -311,46 +644,98 @@ export default function Schedule() {
                                         <div className="text-2xl">{icon}</div>
                                         <div className="text-xs text-sky-700">{reason}</div>
                                         <div className="text-xs text-gray-500 italic">{weatherDesc}</div>
-                                        <div className="text-[10px] text-gray-400">Why? {reason === 'Hot & Dry' ? 'Best for dog baths: warm and dry.' : reason === 'Mild & Dry' ? 'Okay for baths: not rainy.' : 'Not recommended: wet or rainy.'}</div>
+                                        <div className="text-[10px] text-gray-400">Why? {reason === 'Hot & Dry' ? t.whyBest : reason === 'Mild & Dry' ? t.whyOk : t.whyNo}</div>
                                     </div>
                                 );
                             })}
                         </div>
                     )}
                     <div className="mb-2">
-                        <div className="text-xs text-gray-500 font-mono">Debug/Logs:</div>
+                        <div className="text-xs text-gray-500 font-mono">{t.debug}</div>
                         <ul className="text-xs text-gray-700 bg-sky-50/80 rounded p-2 max-h-24 overflow-y-auto border border-sky-100/60">
                             {logs.map((log, i) => <li key={i}>{log}</li>)}
                         </ul>
                     </div>
                     <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-4 mt-6">
-                        <button
-                            type="button"
-                            onClick={handleNotify}
-                            className={`px-4 py-1 rounded text-xs font-semibold transition-colors duration-200 border focus:outline-none focus:ring-2 focus:ring-offset-2 ${notifEnabled ? 'bg-green-100 text-green-700 border-green-400 hover:bg-green-200' : 'bg-sky-100 text-sky-700 border-sky-400 hover:bg-sky-200'}`}
-                            disabled={notifEnabled}
-                            title={notifEnabled ? 'Notifications enabled' : 'Enable browser notifications'}
-                        >
-                            {notifEnabled ? '🔔 Enabled' : '🔕 Enable Notifications'}
-                        </button>
+                        {/* Notification button removed as requested */}
                         <button
                             type="button"
                             onClick={handleRefreshWeather}
-                            className="px-4 py-1 rounded text-xs font-semibold border bg-white/80 text-sky-700 border-sky-400 hover:bg-sky-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                            className="px-4 py-1 flex items-center justify-center rounded text-xs font-semibold border bg-white/80 text-sky-700 border-sky-400 hover:bg-sky-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
                             title="Refresh weather data"
                         >
-                            ⟳ Refresh Weather
+                            {t.refreshWeather}
                         </button>
                         <Link
                             href={`/onboarding/edit/${selectedDogIdx}`}
+                            onClick={() => {
+                                if (typeof window !== "undefined") {
+                                    localStorage.setItem("selectedDogIdx", String(selectedDogIdx));
+                                }
+                            }}
                             className="flex-1 py-2 bg-sky-200 text-sky-900 rounded text-center hover:bg-sky-300"
                         >
-                            Edit Dog Info
+                            {t.editDog}
                         </Link>
-                        <Link href="/" className="flex-1 py-2 bg-sky-600 text-white rounded text-center hover:bg-sky-700">Home</Link>
+                        <Link href="/" className="flex-1 py-2 bg-sky-600 text-white rounded text-center hover:bg-sky-700">{t.home}</Link>
+                    </div>
+                    {/* Weather Source Info Icon - bottom right of schedule card */}
+                    <div className="absolute bottom-3 right-4 z-10">
+                        <div className="group relative flex items-center">
+                            <button
+                                type="button"
+                                aria-label="Weather data source info"
+                                tabIndex={0}
+                                className="w-6 h-6 flex items-center justify-center rounded-full bg-white/70 border border-sky-200 text-sky-700 shadow hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                            >
+                                <span className="font-bold text-base">i</span>
+                            </button>
+                            <div className="absolute bottom-8 right-0 hidden group-hover:block group-focus-within:block bg-white/90 border border-sky-200 rounded-lg shadow-lg px-4 py-2 text-xs text-sky-800 whitespace-nowrap z-20 min-w-[180px]">
+                                <a
+                                    href="https://open-meteo.com/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 hover:underline"
+                                >
+                                    <span role="img" aria-label="globe" className="text-base">🌐</span>
+                                    Weather data by Open-Meteo
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                {/* If no dogs, show a friendly message and onboarding button */}
+                {dogs.length === 0 && (
+                    <div className="w-full max-w-2xl min-h-[40vh] bg-white/60 backdrop-blur rounded-2xl shadow-2xl p-8 border border-white/30 flex flex-col items-center justify-center text-center mt-16">
+                        <span className="text-5xl mb-4">🐶</span>
+                        <h2 className="text-2xl font-bold text-sky-900 mb-2">{t.noDogs}</h2>
+                        <p className="mb-6 text-sky-800">{t.addDogInfo}</p>
+                        <Link href="/onboarding" className="px-6 py-3 bg-sky-600 text-white rounded-lg shadow hover:bg-sky-700 transition font-semibold">{t.addDog}</Link>
+                    </div>
+                )}
             </div>
         </main>
     );
 }
+
+// Add custom keyframes for background animation
+// Add these to your global CSS (e.g., globals.css or tailwind.config.js):
+//
+// @layer utilities {
+//   @keyframes bg-morning { 0%{background-position:0 0;} 100%{background-position:100% 100%;} }
+//   .animate-bg-morning { animation: bg-morning 20s linear infinite alternate; }
+//   @keyframes bg-afternoon { 0%{background-position:0 0;} 100%{background-position:100% 0;} }
+//   .animate-bg-afternoon { animation: bg-afternoon 30s linear infinite alternate; }
+//   @keyframes bg-evening { 0%{background-position:0 0;} 100%{background-position:0 100%;} }
+//   .animate-bg-evening { animation: bg-evening 25s linear infinite alternate; }
+//   @keyframes bg-night { 0%{background-position:0 0;} 100%{background-position:100% 100%;} }
+//   .animate-bg-night { animation: bg-night 40s linear infinite alternate; }
+//   @keyframes cloud-move { 0%{transform:translateX(0);} 100%{transform:translateX(80px);} }
+//   .animate-cloud-move { animation: cloud-move 30s linear infinite alternate; }
+//   @keyframes sunset-move { 0%{transform:translateY(0);} 100%{transform:translateY(40px);} }
+//   .animate-sunset-move { animation: sunset-move 20s linear infinite alternate; }
+//   @keyframes star-twinkle { 0%,100%{opacity:0.7;} 50%{opacity:1;} }
+//   .animate-star-twinkle { animation: star-twinkle 2.5s ease-in-out infinite; }
+//   @keyframes star-twinkle2 { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+//   .animate-star-twinkle2 { animation: star-twinkle2 3.5s ease-in-out infinite; }
+// }
