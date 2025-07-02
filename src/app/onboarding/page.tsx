@@ -157,7 +157,12 @@ export default function Onboarding() {
         // Avoid duplicates by name+origin (simple check)
         const mergedDogs = [...existingDogs];
         dogs.forEach(newDog => {
-            if (!mergedDogs.some((d: any) => d.name === newDog.name && d.origin === newDog.origin)) {
+            if (!mergedDogs.some((d: unknown) => {
+                if (typeof d === "object" && d !== null && "name" in d && "origin" in d) {
+                    return (d as { name: string; origin: string }).name === newDog.name && (d as { name: string; origin: string }).origin === newDog.origin;
+                }
+                return false;
+            })) {
                 mergedDogs.push({ ...newDog, country: newDog.country || country });
             }
         });
@@ -170,8 +175,8 @@ export default function Onboarding() {
                 setShowToast(false);
                 window.location.assign("/schedule");
             }, 1200);
-        } catch (err: any) {
-            if (err && err.name === "QuotaExceededError") {
+        } catch (err) {
+            if (err instanceof DOMException && err.name === "QuotaExceededError") {
                 setFormError("Image or data is too large to save. Please use a smaller image or remove some dogs.");
             } else {
                 setFormError("Failed to save info. Please check your browser settings or use a smaller image.");

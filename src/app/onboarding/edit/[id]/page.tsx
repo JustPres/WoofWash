@@ -84,7 +84,8 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
     const { id: dogId } = React.use(params);
     const [dog, setDog] = useState({ name: "", breed: "", origin: "", furType: "", country: "PH", photo: "", bathTimePref: "morning" });
     const [country, setCountry] = useState("PH");
-    const [error] = useState(""); // intentionally unused, reserved for future error handling
+    const [formError, setFormError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const { lang } = useContext(LanguageContext);
     const t = translations[lang] || translations.en;
@@ -125,9 +126,6 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
             return false;
         }
     }
-
-    const [formError, setFormError] = useState("");
-    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
