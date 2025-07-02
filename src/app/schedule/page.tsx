@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { LanguageContext } from "@/app/layout";
-import { registerServiceWorker } from "@/utils/notifications";
+import { registerServiceWorker, subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
 import Image from "next/image";
 import type { WeatherData } from "@/types/weather";
 
@@ -81,7 +81,12 @@ const translations: Record<string, Record<string, string>> = {
     },
 };
 
-
+const countryList = [
+    { code: "PH", name: "Philippines" },
+    { code: "US", name: "United States" },
+    { code: "JP", name: "Japan" },
+    // Add more as needed
+];
 
 
 
@@ -101,7 +106,7 @@ async function fetchWeather(city: string, country: string) {
         const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&hourly=temperature_2m,precipitation&timezone=auto`);
         if (!weatherRes.ok) throw new Error("Weather fetch failed");
         return weatherRes.json();
-    } catch {
+    } catch (err) {
         throw new Error("Could not fetch weather for " + city);
     }
 }
@@ -117,10 +122,10 @@ export default function Schedule() {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [city, setCity] = useState<string>("");
     const [country, setCountry] = useState<string>("");
-    // Removed unused error state to fix ESLint error
+    const [error, setError] = useState<string>("");
     const [lastUpdated, setLastUpdated] = useState<string>("");
     const [logs, setLogs] = useState<string[]>([]);
-    // Removed unused notifEnabled state to fix ESLint error
+    const [notifEnabled, setNotifEnabled] = useState(false);
 
     // Time of day for animated background
     const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
@@ -129,7 +134,9 @@ export default function Schedule() {
 
     useEffect(() => {
         registerServiceWorker();
-        // Removed notifEnabled logic to fix ESLint error
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            setNotifEnabled(Notification.permission === 'granted');
+        }
     }, []);
 
     useEffect(() => {
@@ -157,6 +164,7 @@ export default function Schedule() {
                 }
             }
             // Do NOT remove selectedDogIdx after use; keep it persistent
+            // if (cityFromOrigin && country) {
             if (cityFromOrigin && country) {
                 setLogs(l => [...l, `Fetching weather for ${cityFromOrigin}, ${country}`]);
                 fetchWeather(cityFromOrigin, country)
@@ -166,11 +174,12 @@ export default function Schedule() {
                         setLogs(l => [...l, `Weather fetch success at ${new Date().toLocaleTimeString()}`]);
                     })
                     .catch((e) => {
+                        setError(e.message);
                         setLogs(l => [...l, `Weather fetch error: ${e.message}`]);
                     });
             }
         }
-    }, [country]);
+    }, []);
 
     // Fetch weather when selected dog changes
     useEffect(() => {
@@ -189,11 +198,12 @@ export default function Schedule() {
                         setLogs(l => [...l, `Weather fetch success at ${new Date().toLocaleTimeString()}`]);
                     })
                     .catch((e) => {
+                        setError(e.message);
                         setLogs(l => [...l, `Weather fetch error: ${e.message}`]);
                     });
             }
         }
-    }, [selectedDogIdx, dogs]);
+    }, [selectedDogIdx]);
 
     // Auto-refresh weather every 5 minutes
     useEffect(() => {
@@ -206,6 +216,7 @@ export default function Schedule() {
                     setLogs(l => [...l, `Auto weather refresh at ${new Date().toLocaleTimeString()}`]);
                 })
                 .catch((e) => {
+                    setError(e.message);
                     setLogs(l => [...l, `Auto weather refresh error: ${e.message}`]);
                 });
         }, 5 * 60 * 1000); // 5 minutes
@@ -224,6 +235,7 @@ export default function Schedule() {
                     setLogs(l => [...l, `Initial delayed weather fetch success at ${new Date().toLocaleTimeString()}`]);
                 })
                 .catch((e) => {
+                    setError(e.message);
                     setLogs(l => [...l, `Initial delayed weather fetch error: ${e.message}`]);
                 });
         }, 2000);
@@ -268,6 +280,7 @@ export default function Schedule() {
 
     // Add a refresh handler
     const handleRefreshWeather = async () => {
+        setError("");
         setLogs(l => [...l, "Manual weather refresh triggered"]);
         if (city && country) {
             try {
@@ -277,8 +290,10 @@ export default function Schedule() {
                 setLogs(l => [...l, `Weather refresh success at ${new Date().toLocaleTimeString()}`]);
             } catch (e) {
                 if (e instanceof Error) {
+                    setError(e.message);
                     setLogs(l => [...l, `Weather refresh error: ${e.message}`]);
                 } else {
+                    setError("Unknown error");
                     setLogs(l => [...l, "Weather refresh error: Unknown error"]);
                 }
             }
@@ -578,11 +593,6 @@ export default function Schedule() {
                                         <div className="text-xs text-gray-500 italic">{weatherDesc}</div>
                                         <div className="text-[10px] text-gray-400">Why? {reason === 'Hot & Dry' ? t.whyBest : reason === 'Mild & Dry' ? t.whyOk : t.whyNo}</div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                    <div className="mb-2">
                                 );
                             })}
                         </div>
