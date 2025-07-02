@@ -5,5 +5,5 @@ export const LanguageContext = createContext<{
     setLang: (lang: string) => void;
 }>({
     lang: "en",
-    setLang: (en) => { },
+    setLang: () => {},
 });
