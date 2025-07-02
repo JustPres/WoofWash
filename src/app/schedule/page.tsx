@@ -340,84 +340,85 @@ export default function Schedule() {
             )}
             {/* Main content wrapper (above overlays) */}
             <div className="w-full min-h-screen flex flex-col items-center justify-center relative z-20">
-                {/* Dog picker card */}
+                {/* Only show schedule/weather card if there is at least one dog */}
                 {dogs.length > 0 && (
-                    <div className="w-full max-w-4xl flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-between bg-white/60 backdrop-blur rounded-xl shadow border border-white/30 p-2 sm:p-4 mb-6 mt-8 gap-3 sm:gap-2">
-                        <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 sm:gap-2">
-                            <span className="text-2xl">🐶</span>
-                            <label htmlFor="dog-picker" className="text-black font-bold text-lg w-full sm:w-auto text-center sm:text-left">{t.selectDog}</label>
-                            <select
-                                id="dog-picker"
-                                value={selectedDogIdx}
-                                onChange={handleDogChange}
-                                className="rounded px-2 py-1 border border-sky-300 bg-white/80 text-sky-900 font-semibold shadow focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm sm:text-base w-full sm:w-auto"
-                            >
-                                {dogs.map((d, i) => (
-                                    <option key={i} value={i}>{d.name}</option>
-                                ))}
-                            </select>
-                            {dogs.length > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={handleRemoveDog}
-                                    className="w-full sm:w-auto px-3 py-1 flex items-center justify-center rounded bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 font-semibold text-xs shadow mt-2 sm:mt-0"
-                                    title={t.remove}
+                    <>
+                        {/* Dog picker card */}
+                        <div className="w-full max-w-4xl flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-between bg-white/60 backdrop-blur rounded-xl shadow border border-white/30 p-2 sm:p-4 mb-6 mt-8 gap-3 sm:gap-2">
+                            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 sm:gap-2">
+                                <span className="text-2xl">🐶</span>
+                                <label htmlFor="dog-picker" className="text-black font-bold text-lg w-full sm:w-auto text-center sm:text-left">{t.selectDog}</label>
+                                <select
+                                    id="dog-picker"
+                                    value={selectedDogIdx}
+                                    onChange={handleDogChange}
+                                    className="rounded px-2 py-1 border border-sky-300 bg-white/80 text-sky-900 font-semibold shadow focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm sm:text-base w-full sm:w-auto"
                                 >
-                                    {t.remove}
-                                </button>
-                            )}
-                        </div>
-                        <Link href="/onboarding" className="w-full sm:w-auto mt-2 sm:mt-0 px-4 py-1 bg-sky-200 text-sky-900 rounded hover:bg-sky-300 font-semibold shadow border border-sky-300 text-center">{t.addDog}</Link>
-                    </div>
-                )}
-                <div className="w-full max-w-4xl min-h-[80vh] bg-white/40 backdrop-blur-md rounded-none sm:rounded-2xl shadow-2xl p-2 sm:p-12 border border-white/30 flex flex-col">
-                    <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-sky-900 drop-shadow text-center">{t.weeklyBath}</h2>
-                    {/* Show selected dog name if available */}
-                    {dogs.length > 0 && dogs[selectedDogIdx] && weather && (
-                        <div className="mb-4 w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center sm:items-stretch justify-center sm:justify-between gap-4 sm:gap-10">
-                            {/* Dog Info Card (modern glassmorphism, left) */}
-                            <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl border border-sky-100 p-8 flex flex-col w-full max-w-xs sm:w-auto items-center relative overflow-hidden mb-4 sm:mb-0 transition-transform duration-300 hover:scale-105 hover:shadow-3xl hover:border-sky-300">
-                                {/* Avatar */}
-                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-200 to-sky-400 flex items-center justify-center text-6xl shadow-lg mb-4 border-4 border-white group-hover:scale-110 group-hover:shadow-3xl transition-transform duration-300 overflow-hidden">
-                                    {dogs[selectedDogIdx].photo ? (
-                                        <Image
-                                            src={dogs[selectedDogIdx].photo}
-                                            alt="Dog photo"
-                                            className="w-full h-full object-cover rounded-full"
-                                            width={96}
-                                            height={96}
-                                            style={{ objectFit: 'cover', borderRadius: '9999px' }}
-                                            priority
-                                        />
-                                    ) : (
-                                        <span>🐶</span>
-                                    )}
-                                </div>
-                                {/* Name */}
-                                <div className="text-2xl font-extrabold text-sky-800 mb-2 text-center w-full truncate group-hover:text-sky-600 transition-colors duration-300">{dogs[selectedDogIdx].name}</div>
-                                {/* Badges */}
-                                <div className="flex flex-wrap gap-2 justify-center mb-3 w-full">
-                                    {dogs[selectedDogIdx].breed && <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">{dogs[selectedDogIdx].breed}</span>}
-                                    {dogs[selectedDogIdx].furType && <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">{dogs[selectedDogIdx].furType}</span>}
-                                    {dogs[selectedDogIdx].country && (
-                                        <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">
-                                            {dogs[selectedDogIdx].country}
-                                        </span>
-                                    )}
-                                </div>
-                                {/* Origin/City */}
-                                <div className="text-sm text-gray-500 mb-1 w-full text-center">{dogs[selectedDogIdx].origin || <span className='italic text-gray-400'>No city/origin</span>}</div>
-                                {/* Last updated */}
-                                <div className="absolute bottom-3 right-4 text-xs text-gray-400 font-mono">{lastUpdated && (<span title="Last updated">{lastUpdated}</span>)}</div>
+                                    {dogs.map((d, i) => (
+                                        <option key={i} value={i}>{d.name}</option>
+                                    ))}
+                                </select>
+                                {dogs.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveDog}
+                                        className="w-full sm:w-auto px-3 py-1 flex items-center justify-center rounded bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 font-semibold text-xs shadow mt-2 sm:mt-0"
+                                        title={t.remove}
+                                    >
+                                        {t.remove}
+                                    </button>
+                                )}
                             </div>
-                            {/* Weather Summary Card (modern glassmorphism, right, with micro-interactions) */}
-                            <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl border border-sky-100 p-8 flex flex-col w-full max-w-xs sm:w-auto items-center justify-center relative overflow-hidden group transition-transform duration-300 hover:scale-105 hover:shadow-3xl">
-                                {/* Weather Icon with micro-interaction */}
-                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-300 to-sky-500 flex items-center justify-center text-6xl shadow-lg mb-4 border-4 border-white animate-pulse-slow group-hover:animate-bounce-slow transition-all duration-300">
-                                    <span>{(() => {
-                                        const code: number = Number(weather.current_weather.weathercode);
-                                        const weatherCodeMap: Record<number, { icon: string }> = {
-                                            0: { icon: '☀️' },
+                            <Link href="/onboarding" className="w-full sm:w-auto mt-2 sm:mt-0 px-4 py-1 bg-sky-200 text-sky-900 rounded hover:bg-sky-300 font-semibold shadow border border-sky-300 text-center">{t.addDog}</Link>
+                        </div>
+                        <div className="w-full max-w-4xl min-h-[80vh] bg-white/40 backdrop-blur-md rounded-none sm:rounded-2xl shadow-2xl p-2 sm:p-12 border border-white/30 flex flex-col">
+                            <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-sky-900 drop-shadow text-center">{t.weeklyBath}</h2>
+                            {/* Show selected dog name if available */}
+                            {dogs.length > 0 && dogs[selectedDogIdx] && weather && (
+                                <div className="mb-4 w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center sm:items-stretch justify-center sm:justify-between gap-4 sm:gap-10">
+                                    {/* Dog Info Card (modern glassmorphism, left) */}
+                                    <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl border border-sky-100 p-8 flex flex-col w-full max-w-xs sm:w-auto items-center relative overflow-hidden mb-4 sm:mb-0 transition-transform duration-300 hover:scale-105 hover:shadow-3xl hover:border-sky-300">
+                                        {/* Avatar */}
+                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-200 to-sky-400 flex items-center justify-center text-6xl shadow-lg mb-4 border-4 border-white group-hover:scale-110 group-hover:shadow-3xl transition-transform duration-300 overflow-hidden">
+                                            {dogs[selectedDogIdx].photo ? (
+                                                <Image
+                                                    src={dogs[selectedDogIdx].photo}
+                                                    alt="Dog photo"
+                                                    className="w-full h-full object-cover rounded-full"
+                                                    width={96}
+                                                    height={96}
+                                                    style={{ objectFit: 'cover', borderRadius: '9999px' }}
+                                                    priority
+                                                />
+                                            ) : (
+                                                <span>🐶</span>
+                                            )}
+                                        </div>
+                                        {/* Name */}
+                                        <div className="text-2xl font-extrabold text-sky-800 mb-2 text-center w-full truncate group-hover:text-sky-600 transition-colors duration-300">{dogs[selectedDogIdx].name}</div>
+                                        {/* Badges */}
+                                        <div className="flex flex-wrap gap-2 justify-center mb-3 w-full">
+                                            {dogs[selectedDogIdx].breed && <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">{dogs[selectedDogIdx].breed}</span>}
+                                            {dogs[selectedDogIdx].furType && <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">{dogs[selectedDogIdx].furType}</span>}
+                                            {dogs[selectedDogIdx].country && (
+                                                <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow">
+                                                    {dogs[selectedDogIdx].country}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {/* Origin/City */}
+                                        <div className="text-sm text-gray-500 mb-1 w-full text-center">{dogs[selectedDogIdx].origin || <span className='italic text-gray-400'>No city/origin</span>}</div>
+                                        {/* Last updated */}
+                                        <div className="absolute bottom-3 right-4 text-xs text-gray-400 font-mono">{lastUpdated && (<span title="Last updated">{lastUpdated}</span>)}</div>
+                                    </div>
+                                    {/* Weather Summary Card (modern glassmorphism, right, with micro-interactions) */}
+                                    <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl border border-sky-100 p-8 flex flex-col w-full max-w-xs sm:w-auto items-center justify-center relative overflow-hidden group transition-transform duration-300 hover:scale-105 hover:shadow-3xl">
+                                        {/* Weather Icon with micro-interaction */}
+                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-300 to-sky-500 flex items-center justify-center text-6xl shadow-lg mb-4 border-4 border-white animate-pulse-slow group-hover:animate-bounce-slow transition-all duration-300">
+                                            <span>{(() => {
+                                                const code: number = Number(weather.current_weather.weathercode);
+                                                const weatherCodeMap: Record<number, { icon: string }> = {
+                                                    0: { icon: '☀️' },
                                             1: { icon: '🌤️' },
                                             2: { icon: '⛅' },
                                             3: { icon: '☁️' },
@@ -594,60 +595,62 @@ export default function Schedule() {
                             })}
                         </div>
                     )}
-                    <div className="mb-2">
-                        <div className="text-xs text-gray-500 font-mono">{t.debug}</div>
-                        <ul className="text-xs text-gray-700 bg-sky-50/80 rounded p-2 max-h-24 overflow-y-auto border border-sky-100/60">
-                            {logs.map((log, i) => <li key={i}>{log}</li>)}
-                        </ul>
-                    </div>
-                    <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-4 mt-6">
-                        {/* Notification button removed as requested */}
-                        <button
-                            type="button"
-                            onClick={handleRefreshWeather}
-                            className="px-4 py-1 flex items-center justify-center rounded text-xs font-semibold border bg-white/80 text-sky-700 border-sky-400 hover:bg-sky-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                            title="Refresh weather data"
-                        >
-                            {t.refreshWeather}
-                        </button>
-                        <Link
-                            href={`/onboarding/edit/${selectedDogIdx}`}
-                            onClick={() => {
-                                if (typeof window !== "undefined") {
-                                    localStorage.setItem("selectedDogIdx", String(selectedDogIdx));
-                                }
-                            }}
-                            className="flex-1 py-2 bg-sky-200 text-sky-900 rounded text-center hover:bg-sky-300"
-                        >
-                            {t.editDog}
-                        </Link>
-                        <Link href="/" className="flex-1 py-2 bg-sky-600 text-white rounded text-center hover:bg-sky-700">{t.home}</Link>
-                    </div>
-                    {/* Weather Source Info Icon - bottom right of schedule card */}
-                    <div className="absolute bottom-3 right-4 z-10">
-                        <div className="group relative flex items-center">
-                            <button
-                                type="button"
-                                aria-label="Weather data source info"
-                                tabIndex={0}
-                                className="w-6 h-6 flex items-center justify-center rounded-full bg-white/70 border border-sky-200 text-sky-700 shadow hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
-                            >
-                                <span className="font-bold text-base">i</span>
-                            </button>
-                            <div className="absolute bottom-8 right-0 hidden group-hover:block group-focus-within:block bg-white/90 border border-sky-200 rounded-lg shadow-lg px-4 py-2 text-xs text-sky-800 whitespace-nowrap z-20 min-w-[180px]">
-                                <a
-                                    href="https://open-meteo.com/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 hover:underline"
+                            <div className="mb-2">
+                                <div className="text-xs text-gray-500 font-mono">{t.debug}</div>
+                                <ul className="text-xs text-gray-700 bg-sky-50/80 rounded p-2 max-h-24 overflow-y-auto border border-sky-100/60">
+                                    {logs.map((log, i) => <li key={i}>{log}</li>)}
+                                </ul>
+                            </div>
+                            <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-4 mt-6">
+                                {/* Notification button removed as requested */}
+                                <button
+                                    type="button"
+                                    onClick={handleRefreshWeather}
+                                    className="px-4 py-1 flex items-center justify-center rounded text-xs font-semibold border bg-white/80 text-sky-700 border-sky-400 hover:bg-sky-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                                    title="Refresh weather data"
                                 >
-                                    <span role="img" aria-label="globe" className="text-base">🌐</span>
-                                    Weather data by Open-Meteo
-                                </a>
+                                    {t.refreshWeather}
+                                </button>
+                                <Link
+                                    href={`/onboarding/edit/${selectedDogIdx}`}
+                                    onClick={() => {
+                                        if (typeof window !== "undefined") {
+                                            localStorage.setItem("selectedDogIdx", String(selectedDogIdx));
+                                        }
+                                    }}
+                                    className="flex-1 py-2 bg-sky-200 text-sky-900 rounded text-center hover:bg-sky-300"
+                                >
+                                    {t.editDog}
+                                </Link>
+                                <Link href="/" className="flex-1 py-2 bg-sky-600 text-white rounded text-center hover:bg-sky-700">{t.home}</Link>
+                            </div>
+                            {/* Weather Source Info Icon - bottom right of schedule card */}
+                            <div className="absolute bottom-3 right-4 z-10">
+                                <div className="group relative flex items-center">
+                                    <button
+                                        type="button"
+                                        aria-label="Weather data source info"
+                                        tabIndex={0}
+                                        className="w-6 h-6 flex items-center justify-center rounded-full bg-white/70 border border-sky-200 text-sky-700 shadow hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                                    >
+                                        <span className="font-bold text-base">i</span>
+                                    </button>
+                                    <div className="absolute bottom-8 right-0 hidden group-hover:block group-focus-within:block bg-white/90 border border-sky-200 rounded-lg shadow-lg px-4 py-2 text-xs text-sky-800 whitespace-nowrap z-20 min-w-[180px]">
+                                        <a
+                                            href="https://open-meteo.com/"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 hover:underline"
+                                        >
+                                            <span role="img" aria-label="globe" className="text-base">🌐</span>
+                                            Weather data by Open-Meteo
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </>
+                )}
                 {/* If no dogs, show a friendly message and onboarding button */}
                 {dogs.length === 0 && (
                     <div className="w-full max-w-2xl min-h-[40vh] bg-white/60 backdrop-blur rounded-2xl shadow-2xl p-8 border border-white/30 flex flex-col items-center justify-center text-center mt-16">
