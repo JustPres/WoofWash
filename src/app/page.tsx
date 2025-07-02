@@ -10,7 +10,7 @@ const languages = [
 	{ code: "ja", label: "日本語" },
 ];
 
-const translations: Record<string, any> = {
+const translations: Record<string, Record<string, string>> = {
 	en: {
 		title: "Bath Schedule App",
 		welcome:
@@ -51,7 +51,7 @@ export default function Home() {
 	}, []);
 
 	const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setLang(e.target.value);
+		setLang(); // No argument, matches context definition
 	};
 
 	const handleNotifToggle = async () => {
@@ -65,8 +65,12 @@ export default function Home() {
 				await unsubscribeUserFromPush();
 				setNotifEnabled(false);
 			}
-		} catch (err: any) {
-			setNotifError(err?.message || 'Notification error');
+		} catch (err) {
+			if (err instanceof Error) {
+				setNotifError(err.message);
+			} else {
+				setNotifError('Notification error');
+			}
 		} finally {
 			setNotifLoading(false);
 		}

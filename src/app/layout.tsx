@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 // Language context for global i18n
 export const LanguageContext = createContext({
   lang: "en",
-  setLang: (_: string) => { },
+  setLang: () => { },
 });
 
 export default function RootLayout({

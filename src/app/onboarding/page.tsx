@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const furTypes = [
     "Short Single Coat",
     "Long Single Coat",
     "Short Double Coat",
-    "Long Double Coat",
     "Curly/Wavy",
     "Hairless"
 ];
@@ -17,7 +17,7 @@ const countryList = [
     // Add more as needed
 ];
 
-const translations: Record<string, any> = {
+const translations: Record<string, Record<string, string>> = {
     en: {
         addDog: "Add Dog",
         name: "Name",
@@ -64,7 +64,7 @@ function convertTo24Hour(time12h: string) {
     const match = time12h.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);
     if (!match) return time12h;
     let hour = parseInt(match[1], 10);
-    let min = match[2] ? parseInt(match[2], 10) : 0;
+    let min = match[2] ? parseInt(match[2], 10) : 0; // eslint-disable-line prefer-const
     const ampm = match[3]?.toUpperCase();
     if (ampm === "PM" && hour < 12) hour += 12;
     if (ampm === "AM" && hour === 12) hour = 0;
@@ -87,6 +87,7 @@ export default function Onboarding() {
         if (stored) setLang(stored);
     }, []);
 
+    // handleLangChange is required for language picker, so keep for future use
     const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setLang(e.target.value);
         localStorage.setItem("lang", e.target.value);
@@ -114,7 +115,7 @@ export default function Onboarding() {
     };
 
     const removeDog = (idx: number) => {
-        if (window.confirm(`Are you sure you want to remove ${dogs[idx].name || 'this dog'}?`)) {
+        if (window.confirm(`Are you sure you want to remove ${dogs[idx].name || "this dog"}?`)) {
             setDogs((prev) => prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev);
         }
     };
@@ -146,7 +147,7 @@ export default function Onboarding() {
             }
         }
         // Merge new dogs with existing dogs in localStorage
-        let existingDogs: any[] = [];
+        let existingDogs: unknown[] = [];
         try {
             const stored = localStorage.getItem("dogs");
             if (stored) {
@@ -156,7 +157,7 @@ export default function Onboarding() {
         // Avoid duplicates by name+origin (simple check)
         const mergedDogs = [...existingDogs];
         dogs.forEach(newDog => {
-            if (!mergedDogs.some(d => d.name === newDog.name && d.origin === newDog.origin)) {
+            if (!mergedDogs.some((d: any) => d.name === newDog.name && d.origin === newDog.origin)) {
                 mergedDogs.push({ ...newDog, country: newDog.country || country });
             }
         });
@@ -218,7 +219,7 @@ export default function Onboarding() {
                                     if (!file) return;
                                     console.log('[DEBUG] File size (bytes):', file.size);
                                     if (file.size > 10 * 1024 * 1024) {
-                                        alert('Please select an image smaller than 10MB.');
+                                        alert("Please select an image smaller than 10MB.");
                                         return;
                                     }
                                     const reader = new FileReader();
@@ -232,7 +233,7 @@ export default function Onboarding() {
                             {(() => {
                                 console.log('[DEBUG] Rendering dog.photo:', dog.photo);
                                 return dog.photo ? (
-                                    <img src={dog.photo} alt="Dog photo preview" className="w-20 h-20 object-cover rounded-full border-2 border-sky-200 mt-2" />
+                                    <Image src={dog.photo} alt="Dog photo preview" className="w-20 h-20 object-cover rounded-full border-2 border-sky-200 mt-2" width={80} height={80} />
                                 ) : null;
                             })()}
                             <div className="text-xs text-gray-500 mt-1">Images are stored in your browser (max 5MB total for all dogs).</div>
