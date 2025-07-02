@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { LanguageContext } from "@/app/layout";
-import { registerServiceWorker, subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
+import { registerServiceWorker } from "@/utils/notifications";
 import Image from "next/image";
 import type { WeatherData } from "@/types/weather";
 
@@ -81,12 +81,7 @@ const translations: Record<string, Record<string, string>> = {
     },
 };
 
-const countryList = [
-    { code: "PH", name: "Philippines" },
-    { code: "US", name: "United States" },
-    { code: "JP", name: "Japan" },
-    // Add more as needed
-];
+
 
 
 
@@ -106,7 +101,7 @@ async function fetchWeather(city: string, country: string) {
         const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&hourly=temperature_2m,precipitation&timezone=auto`);
         if (!weatherRes.ok) throw new Error("Weather fetch failed");
         return weatherRes.json();
-    } catch (err) {
+    } catch {
         throw new Error("Could not fetch weather for " + city);
     }
 }
@@ -122,10 +117,10 @@ export default function Schedule() {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [city, setCity] = useState<string>("");
     const [country, setCountry] = useState<string>("");
-    const [error, setError] = useState<string>("");
+    const [error, setError] = useState<string>(""); // used
     const [lastUpdated, setLastUpdated] = useState<string>("");
     const [logs, setLogs] = useState<string[]>([]);
-    const [notifEnabled, setNotifEnabled] = useState(false);
+    const [notifEnabled, setNotifEnabled] = useState(false); // used
 
     // Time of day for animated background
     const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
