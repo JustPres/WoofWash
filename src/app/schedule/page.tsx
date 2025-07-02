@@ -117,10 +117,12 @@ export default function Schedule() {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [city, setCity] = useState<string>("");
     const [country, setCountry] = useState<string>("");
-    const [error, setError] = useState<string>(""); // used
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [error, setError] = useState<string>("");
     const [lastUpdated, setLastUpdated] = useState<string>("");
     const [logs, setLogs] = useState<string[]>([]);
-    const [notifEnabled, setNotifEnabled] = useState(false); // used
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [notifEnabled, setNotifEnabled] = useState(false);
 
     // Time of day for animated background
     const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
