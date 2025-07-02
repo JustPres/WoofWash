@@ -75,6 +75,7 @@ export default function Onboarding() {
     const [dogs, setDogs] = useState([
         { name: "", breed: "", origin: "", furType: "", country: "PH", photo: "" }
     ]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [country, setCountry] = useState("PH");
     const [timeInput, setTimeInput] = useState("");
     const [convertedTime, setConvertedTime] = useState("");
@@ -328,7 +329,7 @@ export default function Onboarding() {
                         Bath Time (optional)
                         <span className="relative group cursor-pointer">
                             <span className="text-sky-500 text-base">&#9432;</span>
-                            <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-56 border border-sky-200">Enter a time in 12-hour (e.g. 2:30 PM) or 24-hour (14:30) format. We'll show the 24-hour version for you.</span>
+                            <span className="absolute left-6 top-0 z-10 hidden group-hover:block bg-white/90 text-sky-900 text-xs rounded shadow p-2 w-56 border border-sky-200">Enter a time in 12-hour (e.g. 2:30 PM) or 24-hour (14:30) format. We&apos;ll show the 24-hour version for you.</span>
                         </span>
                     </label>
                     <input
