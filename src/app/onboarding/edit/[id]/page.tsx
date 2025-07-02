@@ -3,6 +3,7 @@ import React, { useContext } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LanguageContext } from "@/app/layout";
+import Image from "next/image";
 
 const furTypes = [
     "Short Single Coat",
@@ -20,7 +21,20 @@ const countryList = [
     // Add more as needed
 ];
 
-const translations: Record<string, any> = {
+const translations: Record<string, {
+    editDog: string;
+    name: string;
+    breed: string;
+    origin: string;
+    furType: string;
+    country: string;
+    selectFurType: string;
+    validating: string;
+    back: string;
+    save: string;
+    cityNotFound: (city: string) => string;
+    saveError: string;
+}> = {
     en: {
         editDog: "Edit Dog Info",
         name: "Name",
@@ -70,7 +84,7 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
     const { id: dogId } = React.use(params);
     const [dog, setDog] = useState({ name: "", breed: "", origin: "", furType: "", country: "PH", photo: "", bathTimePref: "morning" });
     const [country, setCountry] = useState("PH");
-    const [error, setError] = useState("");
+    const [error] = useState(""); // intentionally unused, reserved for future error handling
 
     const { lang } = useContext(LanguageContext);
     const t = translations[lang] || translations.en;
@@ -137,6 +151,7 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
                 router.push("/schedule");
             }
         } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             setFormError(t.saveError);
         }
     };
@@ -253,10 +268,9 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
                         }}
                     />
                     {dog.photo && (
-                        <img src={dog.photo} alt="Dog photo preview" className="w-20 h-20 object-cover rounded-full border-2 border-sky-200 mt-2" />
+                        <Image src={dog.photo} alt="Dog photo preview" className="w-20 h-20 object-cover rounded-full border-2 border-sky-200 mt-2" width={80} height={80} />
                     )}
                     <div className="text-xs text-gray-500 mt-1">Images are stored in your browser (max 5MB total for all dogs).</div>
-                    {error && <div className="text-red-500 text-sm" aria-live="polite">{error}</div>}
                     {formError && <div className="text-red-500 text-sm mb-2" aria-live="polite">{formError}</div>}
                     {loading && (
                         <div className="flex items-center gap-2 text-sky-700 text-sm mb-2" aria-live="polite">
