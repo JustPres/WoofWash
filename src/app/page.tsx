@@ -50,8 +50,8 @@ export default function Home() {
 		}
 	}, []);
 
-	const handleLangChange = () => {
-		setLang(); // No argument, matches context definition
+	const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		setLang(e.target.value);
 	};
 
 	const handleNotifToggle = async () => {
