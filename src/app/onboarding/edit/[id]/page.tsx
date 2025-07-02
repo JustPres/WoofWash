@@ -150,8 +150,7 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
                 localStorage.setItem("dogs", JSON.stringify(dogs));
                 router.push("/schedule");
             }
-        } catch (err) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch {
             setFormError(t.saveError);
         }
     };
