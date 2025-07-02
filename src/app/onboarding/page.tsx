@@ -75,8 +75,7 @@ export default function Onboarding() {
     const [dogs, setDogs] = useState([
         { name: "", breed: "", origin: "", furType: "", country: "PH", photo: "" }
     ]);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [country, setCountry] = useState("PH");
+    // Removed unused country state to fix ESLint error
     const [timeInput, setTimeInput] = useState("");
     const [convertedTime, setConvertedTime] = useState("");
     const [showToast, setShowToast] = useState(false);
@@ -88,11 +87,7 @@ export default function Onboarding() {
         if (stored) setLang(stored);
     }, []);
 
-    // handleLangChange is required for language picker, so keep for future use
-    const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLang(e.target.value);
-        localStorage.setItem("lang", e.target.value);
-    };
+    // Removed unused handleLangChange to fix ESLint error
 
     const handleChange = (idx: number, field: string, value: string) => {
         setDogs((prev) => {
@@ -112,7 +107,7 @@ export default function Onboarding() {
 
     // Update addDog to include photo
     const addDog = () => {
-        setDogs((prev) => [...prev, { name: "", breed: "", origin: "", furType: "", country, photo: "" }]);
+        setDogs((prev) => [...prev, { name: "", breed: "", origin: "", furType: "", country: "PH", photo: "" }]);
     };
 
     const removeDog = (idx: number) => {
@@ -141,7 +136,7 @@ export default function Onboarding() {
         // Validate all dog origins
         for (const dog of dogs) {
             const city = dog.origin.split(",")[0].trim();
-            const valid = await validateCityCountry(city, dog.country || country);
+            const valid = await validateCityCountry(city, dog.country || "PH");
             if (!valid) {
                 setFormError("City &quot;" + city + "&quot; not found in selected country.");
                 return;
@@ -164,7 +159,7 @@ export default function Onboarding() {
                 }
                 return false;
             })) {
-                mergedDogs.push({ ...newDog, country: newDog.country || country });
+                mergedDogs.push({ ...newDog, country: newDog.country || "PH" });
             }
         });
         try {
