@@ -1,7 +1,9 @@
 import { createContext } from "react";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const LanguageContext = createContext({
+export const LanguageContext = createContext<{
+  lang: string;
+  setLang: (lang: string) => void;
+}>({
   lang: "en",
-  setLang: (lang: string) => {},
+  setLang: () => {},
 });
