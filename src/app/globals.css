@@ -71,6 +71,20 @@ body {
   animation: fade-in 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+@keyframes fab-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fab-rotate {
+  animation: fab-rotate 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @media (max-width: 340px) {
   .language-label {
     display: none;

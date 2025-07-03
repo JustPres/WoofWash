@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { PlusIcon } from "@heroicons/react/24/solid";
 
 const furTypes = [
     "Short Single Coat",
@@ -81,6 +82,7 @@ export default function Onboarding() {
     const [showToast, setShowToast] = useState(false);
     const [lang, setLang] = useState("en");
     const t = translations[lang] || translations.en;
+    const [fabRotating, setFabRotating] = useState(false);
 
     useEffect(() => {
         const stored = localStorage.getItem("lang");
@@ -107,6 +109,7 @@ export default function Onboarding() {
 
     // Update addDog to include photo
     const addDog = () => {
+        setFabRotating(true);
         setDogs((prev) => [...prev, { name: "", breed: "", origin: "", furType: "", country: "PH", photo: "" }]);
     };
 
@@ -180,6 +183,13 @@ export default function Onboarding() {
             console.error("[DEBUG] localStorage error:", err);
         }
     };
+
+    useEffect(() => {
+        if (fabRotating) {
+            const timeout = setTimeout(() => setFabRotating(false), 400);
+            return () => clearTimeout(timeout);
+        }
+    }, [fabRotating]);
 
     return (
         <main className="min-h-screen w-full bg-gradient-to-br from-sky-200/60 via-white/80 to-sky-400/60 flex flex-col items-center justify-center p-0">
@@ -319,7 +329,6 @@ export default function Onboarding() {
                             )}
                         </div>
                     ))}
-                    <button type="button" onClick={addDog} className="w-full mb-2 py-2 bg-sky-200/80 text-sky-900 rounded hover:bg-sky-300/90 font-semibold shadow text-base sm:text-lg">{t.addDog}</button>
                     <label className="block mb-1 font-semibold flex items-center gap-1 text-black mt-2 text-sm sm:text-base">
                         Bath Time (optional)
                         <span className="relative group cursor-pointer">
@@ -343,6 +352,15 @@ export default function Onboarding() {
                     <button type="submit" className="w-full py-2 bg-sky-600 text-white rounded hover:bg-sky-700 font-bold shadow text-base sm:text-lg">{t.save}</button>
                 </form>
             </div>
+            {/* Floating Action Button for Add Dog */}
+            <button
+                type="button"
+                onClick={addDog}
+                className={`fixed bottom-6 right-6 z-50 bg-sky-600 hover:bg-sky-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-sky-400 ${fabRotating ? 'animate-fab-rotate' : ''}`}
+                aria-label={t.addDog}
+            >
+                <PlusIcon className="h-8 w-8" />
+            </button>
         </main>
     );
 }

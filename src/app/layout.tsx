@@ -46,6 +46,17 @@ export default function RootLayout({
   return (
     <html lang={lang}>
       <head>
+        <title>WeatherShower: Dog Bath Schedule App</title>
+        <meta name="description" content="Personalized dog bath schedules based on local weather. Keep your dog clean and healthy with WeatherShower!" />
+        <meta property="og:title" content="WeatherShower: Dog Bath Schedule App" />
+        <meta property="og:description" content="Personalized dog bath schedules based on local weather. Keep your dog clean and healthy with WeatherShower!" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/icon-512.png" />
+        <meta property="og:url" content="https://yourdomain.com/" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="WeatherShower: Dog Bath Schedule App" />
+        <meta name="twitter:description" content="Personalized dog bath schedules based on local weather. Keep your dog clean and healthy with WeatherShower!" />
+        <meta name="twitter:image" content="/icon-512.png" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/svg+xml" href="/dog-weather-favicon.svg" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
