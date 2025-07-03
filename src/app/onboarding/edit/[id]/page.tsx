@@ -154,7 +154,7 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
     };
 
     return (
-        <main className="min-h-screen w-full bg-gradient-to-br from-sky-200/60 via-white/80 to-sky-400/60 flex flex-col items-center justify-center p-0">
+        <main className="min-h-screen w-full flex flex-col items-center justify-center p-0">
             <div className="w-full max-w-xl min-h-[50vh] bg-white/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/30 flex flex-col">
                 <h2 className="text-2xl font-extrabold mb-4 text-sky-900 drop-shadow">{t.editDog}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">

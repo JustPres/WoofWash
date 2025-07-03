@@ -192,7 +192,7 @@ export default function Onboarding() {
     }, [fabRotating]);
 
     return (
-        <main className="min-h-screen w-full bg-gradient-to-br from-sky-200/60 via-white/80 to-sky-400/60 flex flex-col items-center justify-center p-0">
+        <main className="min-h-screen w-full flex flex-col items-center justify-center p-0">
             {showToast && (
                 <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-base animate-fade-in">
                     {t.toast}

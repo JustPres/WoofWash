@@ -114,3 +114,76 @@ body {
     min-height: unset;
   }
 }
+
+@keyframes star-twinkle {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-star-twinkle {
+  animation: star-twinkle 2.5s ease-in-out infinite;
+}
+
+@keyframes star-twinkle2 {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-star-twinkle2 {
+  animation: star-twinkle2 3.5s ease-in-out infinite;
+}
+
+@keyframes cloud-move {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(80px);
+  }
+}
+
+.animate-cloud-move {
+  animation: cloud-move 30s linear infinite alternate;
+}
+
+@keyframes shooting-star {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1.1);
+  }
+
+  80% {
+    opacity: 1;
+    transform: translate(120px, 60px) scale(1.1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(180px, 90px) scale(0.8);
+  }
+}
+
+.animate-shooting-star {
+  animation: shooting-star 1.2s linear;
+  pointer-events: none;
+}
