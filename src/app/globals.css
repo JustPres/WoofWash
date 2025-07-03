@@ -70,3 +70,33 @@ body {
 .animate-fade-in {
   animation: fade-in 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
+
+@media (max-width: 340px) {
+  .language-label {
+    display: none;
+  }
+
+  .notification-toggle {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    min-width: unset;
+    min-height: unset;
+  }
+}
+
+@media (max-width: 430px) {
+  .notification-text {
+    display: none;
+  }
+
+  .notification-icon svg {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+
+  .notification-toggle {
+    padding: 0.5rem;
+    min-width: unset;
+    min-height: unset;
+  }
+}

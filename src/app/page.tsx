@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import { subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notifications";
 import { LanguageContext } from "@/context/LanguageContext";
 import Link from "next/link";
+import { BellIcon as BellOutline, BellAlertIcon as BellSolid } from "@heroicons/react/24/outline";
 
 const languages = [
 	{ code: "en", label: "English" },
@@ -85,7 +86,7 @@ export default function Home() {
 			<div className="absolute top-4 right-4 flex items-center gap-4">
 				<label
 					htmlFor="lang-picker"
-					className="mr-2 text-sky-800 font-semibold"
+					className="language-label mr-2 text-sky-800 font-semibold"
 					id="lang-picker-label"
 				>
 					{t.language}
@@ -106,12 +107,21 @@ export default function Home() {
 				<button
 					type="button"
 					onClick={handleNotifToggle}
-					className={`ml-4 px-4 py-2 rounded transition font-semibold shadow border focus:outline-none focus:ring-2 focus:ring-sky-400 ${notifEnabled ? 'bg-green-200 text-green-900 border-green-400 hover:bg-green-300' : 'bg-sky-200 text-sky-900 border-sky-400 hover:bg-sky-300'} ${notifLoading ? 'opacity-60 cursor-wait' : ''}`}
+					className={`notification-toggle ml-4 px-4 py-2 rounded transition font-semibold shadow border focus:outline-none focus:ring-2 focus:ring-sky-400 flex items-center gap-2 ${notifEnabled ? 'bg-green-200 text-green-900 border-green-400 hover:bg-green-300' : 'bg-sky-200 text-sky-900 border-sky-400 hover:bg-sky-300'} ${notifLoading ? 'opacity-60 cursor-wait' : ''}`}
 					aria-pressed={notifEnabled}
 					aria-label={notifEnabled ? 'Disable notifications' : 'Enable notifications'}
 					disabled={notifLoading}
 				>
-					{notifEnabled ? '🔔 Notifications On' : '🔕 Enable Notifications'}
+					<span className="notification-icon">
+						{notifEnabled ? (
+							<BellSolid className="h-6 w-6" />
+						) : (
+							<BellOutline className="h-6 w-6" />
+						)}
+					</span>
+					<span className="notification-text">
+						{notifEnabled ? 'Notifications On' : 'Enable Notifications'}
+					</span>
 				</button>
 			</div>
 			{notifError && <div className="text-red-600 mt-2">{notifError}</div>}

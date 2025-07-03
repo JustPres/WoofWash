@@ -419,182 +419,182 @@ export default function Schedule() {
                                                 const code: number = Number(weather.current_weather.weathercode);
                                                 const weatherCodeMap: Record<number, { icon: string }> = {
                                                     0: { icon: '☀️' },
-                                            1: { icon: '🌤️' },
-                                            2: { icon: '⛅' },
-                                            3: { icon: '☁️' },
-                                            45: { icon: '🌫️' },
-                                            48: { icon: '🌫️' },
-                                            51: { icon: '🌦️' },
-                                            53: { icon: '🌦️' },
-                                            55: { icon: '🌦️' },
-                                            56: { icon: '🌧️' },
-                                            57: { icon: '🌧️' },
-                                            61: { icon: '🌦️' },
-                                            63: { icon: '🌧️' },
-                                            65: { icon: '🌧️' },
-                                            66: { icon: '🌧️' },
-                                            67: { icon: '🌧️' },
-                                            71: { icon: '❄️' },
-                                            73: { icon: '❄️' },
-                                            75: { icon: '❄️' },
-                                            77: { icon: '❄️' },
-                                            80: { icon: '🌦️' },
-                                            81: { icon: '🌧️' },
-                                            82: { icon: '🌧️' },
-                                            85: { icon: '❄️' },
-                                            86: { icon: '❄️' },
-                                            95: { icon: '⛈️' },
-                                            96: { icon: '⛈️' },
-                                            99: { icon: '⛈️' },
-                                        };
-                                        return weatherCodeMap[code as keyof typeof weatherCodeMap]?.icon || '❓';
-                                    })()}</span>
-                                </div>
-                                {/* Temperature */}
-                                <div className="text-4xl font-extrabold text-sky-800 mb-1 text-center w-full drop-shadow group-hover:text-sky-600 transition-colors duration-300">{weather.current_weather.temperature}°C</div>
-                                {/* Description */}
-                                <div className="text-lg font-semibold text-gray-700 mb-3 text-center w-full group-hover:text-sky-700 transition-colors duration-300">{(() => {
-                                    const code: number = Number(weather.current_weather.weathercode);
-                                    const weatherCodeMap: Record<number, { desc: string }> = {
-                                        0: { desc: 'Clear sky' },
-                                        1: { desc: 'Mainly clear' },
-                                        2: { desc: 'Partly cloudy' },
-                                        3: { desc: 'Overcast' },
-                                        45: { desc: 'Fog' },
-                                        48: { desc: 'Depositing rime fog' },
-                                        51: { desc: 'Drizzle: Light' },
-                                        53: { desc: 'Drizzle: Moderate' },
-                                        55: { desc: 'Drizzle: Dense' },
-                                        56: { desc: 'Freezing Drizzle: Light' },
-                                        57: { desc: 'Freezing Drizzle: Dense' },
-                                        61: { desc: 'Rain: Slight' },
-                                        63: { desc: 'Rain: Moderate' },
-                                        65: { desc: 'Rain: Heavy' },
-                                        66: { desc: 'Freezing Rain: Light' },
-                                        67: { desc: 'Freezing Rain: Heavy' },
-                                        71: { desc: 'Snow fall: Slight' },
-                                        73: { desc: 'Snow fall: Moderate' },
-                                        75: { desc: 'Snow fall: Heavy' },
-                                        77: { desc: 'Snow grains' },
-                                        80: { desc: 'Rain showers: Slight' },
-                                        81: { desc: 'Rain showers: Moderate' },
-                                        82: { desc: 'Rain showers: Violent' },
-                                        85: { desc: 'Snow showers: Slight' },
-                                        86: { desc: 'Snow showers: Heavy' },
-                                        95: { desc: 'Thunderstorm' },
-                                        96: { desc: 'Thunderstorm: Hail' },
-                                        99: { desc: 'Thunderstorm: Heavy hail' },
-                                    };
-                                    return weatherCodeMap[code as keyof typeof weatherCodeMap]?.desc || 'Unknown';
-                                })()}</div>
-                                {/* Weather Stats Badges */}
-                                <div className="flex flex-row gap-2 justify-center w-full mb-2">
-                                    <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
-                                        <span className="font-bold">Max</span>
-                                        {weather.daily.temperature_2m_max[0]}°C
-                                    </span>
-                                    <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
-                                        <span className="font-bold">Min</span>
-                                        {weather.daily.temperature_2m_min[0]}°C
-                                    </span>
-                                    <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
-                                        <span className="font-bold">💧</span>
-                                        {weather.daily.precipitation_sum[0]} mm
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {/* Real schedule from API, now inside the main container and with time */}
-                    {weather && weather.daily && weather.daily.time && weather.hourly && (
-                        <div className="flex flex-wrap justify-between mb-4 gap-2">
-                            {weather.daily.time.map((date: string, idx: number) => {
-                                const day = new Date(date).toLocaleDateString(undefined, { weekday: 'short' });
-                                // Get bath time preference for selected dog
-                                const bathTimePref = dogs[selectedDogIdx]?.bathTimePref || "morning";
-                                // Set hour range based on preference
-                                let hourStart = 9, hourEnd = 17;
-                                if (bathTimePref === "morning") { hourStart = 9; hourEnd = 12; }
-                                else if (bathTimePref === "afternoon") { hourStart = 12; hourEnd = 17; }
-                                // For custom, keep 9-17 for now (can be extended)
-                                const hours = weather.hourly.time
-                                    .map((t: string, i: number) => ({ t, i }))
-                                    .filter((hour: { t: string, i: number }) => {
-                                        if (!hour.t.startsWith(date + 'T')) return false;
-                                        const hourNum = Number(hour.t.split('T')[1].split(':')[0]);
-                                        return hourNum >= hourStart && hourNum <= hourEnd;
-                                    });
-                                // Check if any hour in this window is hot and dry
-                                let found = null;
-                                for (const hour of hours) {
-                                    const temp = weather.hourly.temperature_2m[hour.i];
-                                    const precip = weather.hourly.precipitation[hour.i];
-                                    if (temp > 30 && precip < 0.1) {
-                                        found = hour.t.split('T')[1].slice(0, 5); // e.g. '15:00'
-                                        break;
-                                    }
-                                }
-                                // Weathercode mapping for user-friendly description and icon
-                                const weatherCodeMap: Record<number, { desc: string, icon: string }> = {
-                                    0: { desc: 'Clear sky', icon: '☀️' },
-                                    1: { desc: 'Mainly clear', icon: '🌤️' },
-                                    2: { desc: 'Partly cloudy', icon: '⛅' },
-                                    3: { desc: 'Overcast', icon: '☁️' },
-                                    45: { desc: 'Fog', icon: '🌫️' },
-                                    48: { desc: 'Depositing rime fog', icon: '🌫️' },
-                                    51: { desc: 'Drizzle: Light', icon: '🌦️' },
-                                    53: { desc: 'Drizzle: Moderate', icon: '🌦️' },
-                                    55: { desc: 'Drizzle: Dense', icon: '🌦️' },
-                                    56: { desc: 'Freezing Drizzle: Light', icon: '🌧️' },
-                                    57: { desc: 'Freezing Drizzle: Dense', icon: '🌧️' },
-                                    61: { desc: 'Rain: Slight', icon: '🌦️' },
-                                    63: { desc: 'Rain: Moderate', icon: '🌧️' },
-                                    65: { desc: 'Rain: Heavy', icon: '🌧️' },
-                                    66: { desc: 'Freezing Rain: Light', icon: '🌧️' },
-                                    67: { desc: 'Freezing Rain: Heavy', icon: '🌧️' },
-                                    71: { desc: 'Snow fall: Slight', icon: '❄️' },
-                                    73: { desc: 'Snow fall: Moderate', icon: '❄️' },
-                                    75: { desc: 'Snow fall: Heavy', icon: '❄️' },
-                                    77: { desc: 'Snow grains', icon: '❄️' },
-                                    80: { desc: 'Rain showers: Slight', icon: '🌦️' },
-                                    81: { desc: 'Rain showers: Moderate', icon: '🌧️' },
-                                    82: { desc: 'Rain showers: Violent', icon: '🌧️' },
-                                    85: { desc: 'Snow showers: Slight', icon: '❄️' },
-                                    86: { desc: 'Snow showers: Heavy', icon: '❄️' },
-                                    95: { desc: 'Thunderstorm: Slight/Moderate', icon: '⛈️' },
-                                    96: { desc: 'Thunderstorm: Hail', icon: '⛈️' },
-                                    99: { desc: 'Thunderstorm: Heavy hail', icon: '⛈️' },
-                                };
-                                let time = '--', reason = 'Wet', icon = '🌧️', weatherDesc = '';
-                                const code = weather.daily.weathercode[idx];
-                                if (found) {
-                                    time = found;
-                                    reason = 'Hot & Dry';
-                                    icon = '☀️';
-                                } else if (hours.some((hour: { t: string, i: number }) => weather.hourly.precipitation[hour.i] < 0.1)) {
-                                    // If at least one hour is dry but not hot
-                                    const dryHour = hours.find((hour: { t: string, i: number }) => weather.hourly.precipitation[hour.i] < 0.1);
-                                    time = dryHour ? dryHour.t.split('T')[1].slice(0, 5) : '--';
-                                    reason = 'Mild & Dry';
-                                    icon = '⛅';
-                                }
-                                if (weatherCodeMap[code]) {
-                                    weatherDesc = weatherCodeMap[code].desc;
-                                    icon = weatherCodeMap[code].icon;
-                                }
-                                return (
-                                    <div key={date} className="flex flex-col items-center flex-1 min-w-[45vw] max-w-[100vw] sm:min-w-[90px] sm:max-w-[120px] bg-white/60 backdrop-blur rounded-xl p-2 shadow border border-white/30">
-                                        <div className="text-lg font-semibold text-sky-800 drop-shadow">{day}</div>
-                                        <div className="text-base font-bold text-black">{time}</div>
-                                        <div className="text-2xl">{icon}</div>
-                                        <div className="text-xs text-sky-700">{reason}</div>
-                                        <div className="text-xs text-gray-500 italic">{weatherDesc}</div>
-                                        <div className="text-[10px] text-gray-400">Why? {reason === 'Hot & Dry' ? t.whyBest : reason === 'Mild & Dry' ? t.whyOk : t.whyNo}</div>
+                                                    1: { icon: '🌤️' },
+                                                    2: { icon: '⛅' },
+                                                    3: { icon: '☁️' },
+                                                    45: { icon: '🌫️' },
+                                                    48: { icon: '🌫️' },
+                                                    51: { icon: '🌦️' },
+                                                    53: { icon: '🌦️' },
+                                                    55: { icon: '🌦️' },
+                                                    56: { icon: '🌧️' },
+                                                    57: { icon: '🌧️' },
+                                                    61: { icon: '🌦️' },
+                                                    63: { icon: '🌧️' },
+                                                    65: { icon: '🌧️' },
+                                                    66: { icon: '🌧️' },
+                                                    67: { icon: '🌧️' },
+                                                    71: { icon: '❄️' },
+                                                    73: { icon: '❄️' },
+                                                    75: { icon: '❄️' },
+                                                    77: { icon: '❄️' },
+                                                    80: { icon: '🌦️' },
+                                                    81: { icon: '🌧️' },
+                                                    82: { icon: '🌧️' },
+                                                    85: { icon: '❄️' },
+                                                    86: { icon: '❄️' },
+                                                    95: { icon: '⛈️' },
+                                                    96: { icon: '⛈️' },
+                                                    99: { icon: '⛈️' },
+                                                };
+                                                return weatherCodeMap[code as keyof typeof weatherCodeMap]?.icon || '❓';
+                                            })()}</span>
+                                        </div>
+                                        {/* Temperature */}
+                                        <div className="text-4xl font-extrabold text-sky-800 mb-1 text-center w-full drop-shadow group-hover:text-sky-600 transition-colors duration-300">{weather.current_weather.temperature}°C</div>
+                                        {/* Description */}
+                                        <div className="text-lg font-semibold text-gray-700 mb-3 text-center w-full group-hover:text-sky-700 transition-colors duration-300">{(() => {
+                                            const code: number = Number(weather.current_weather.weathercode);
+                                            const weatherCodeMap: Record<number, { desc: string }> = {
+                                                0: { desc: 'Clear sky' },
+                                                1: { desc: 'Mainly clear' },
+                                                2: { desc: 'Partly cloudy' },
+                                                3: { desc: 'Overcast' },
+                                                45: { desc: 'Fog' },
+                                                48: { desc: 'Depositing rime fog' },
+                                                51: { desc: 'Drizzle: Light' },
+                                                53: { desc: 'Drizzle: Moderate' },
+                                                55: { desc: 'Drizzle: Dense' },
+                                                56: { desc: 'Freezing Drizzle: Light' },
+                                                57: { desc: 'Freezing Drizzle: Dense' },
+                                                61: { desc: 'Rain: Slight' },
+                                                63: { desc: 'Rain: Moderate' },
+                                                65: { desc: 'Rain: Heavy' },
+                                                66: { desc: 'Freezing Rain: Light' },
+                                                67: { desc: 'Freezing Rain: Heavy' },
+                                                71: { desc: 'Snow fall: Slight' },
+                                                73: { desc: 'Snow fall: Moderate' },
+                                                75: { desc: 'Snow fall: Heavy' },
+                                                77: { desc: 'Snow grains' },
+                                                80: { desc: 'Rain showers: Slight' },
+                                                81: { desc: 'Rain showers: Moderate' },
+                                                82: { desc: 'Rain showers: Violent' },
+                                                85: { desc: 'Snow showers: Slight' },
+                                                86: { desc: 'Snow showers: Heavy' },
+                                                95: { desc: 'Thunderstorm' },
+                                                96: { desc: 'Thunderstorm: Hail' },
+                                                99: { desc: 'Thunderstorm: Heavy hail' },
+                                            };
+                                            return weatherCodeMap[code as keyof typeof weatherCodeMap]?.desc || 'Unknown';
+                                        })()}</div>
+                                        {/* Weather Stats Badges */}
+                                        <div className="flex flex-row gap-2 justify-center w-full mb-2">
+                                            <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
+                                                <span className="font-bold">Max</span>
+                                                {weather.daily.temperature_2m_max[0]}°C
+                                            </span>
+                                            <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
+                                                <span className="font-bold">Min</span>
+                                                {weather.daily.temperature_2m_min[0]}°C
+                                            </span>
+                                            <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold shadow flex flex-col items-center group-hover:bg-sky-200 transition-colors duration-300">
+                                                <span className="font-bold">💧</span>
+                                                {weather.daily.precipitation_sum[0]} mm
+                                            </span>
+                                        </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                                </div>
+                            )}
+                            {/* Real schedule from API, now inside the main container and with time */}
+                            {weather && weather.daily && weather.daily.time && weather.hourly && (
+                                <div className="flex flex-wrap justify-between mb-4 gap-2">
+                                    {weather.daily.time.map((date: string, idx: number) => {
+                                        const day = new Date(date).toLocaleDateString(undefined, { weekday: 'short' });
+                                        // Get bath time preference for selected dog
+                                        const bathTimePref = dogs[selectedDogIdx]?.bathTimePref || "morning";
+                                        // Set hour range based on preference
+                                        let hourStart = 9, hourEnd = 17;
+                                        if (bathTimePref === "morning") { hourStart = 9; hourEnd = 12; }
+                                        else if (bathTimePref === "afternoon") { hourStart = 12; hourEnd = 17; }
+                                        // For custom, keep 9-17 for now (can be extended)
+                                        const hours = weather.hourly.time
+                                            .map((t: string, i: number) => ({ t, i }))
+                                            .filter((hour: { t: string, i: number }) => {
+                                                if (!hour.t.startsWith(date + 'T')) return false;
+                                                const hourNum = Number(hour.t.split('T')[1].split(':')[0]);
+                                                return hourNum >= hourStart && hourNum <= hourEnd;
+                                            });
+                                        // Check if any hour in this window is hot and dry
+                                        let found = null;
+                                        for (const hour of hours) {
+                                            const temp = weather.hourly.temperature_2m[hour.i];
+                                            const precip = weather.hourly.precipitation[hour.i];
+                                            if (temp > 30 && precip < 0.1) {
+                                                found = hour.t.split('T')[1].slice(0, 5); // e.g. '15:00'
+                                                break;
+                                            }
+                                        }
+                                        // Weathercode mapping for user-friendly description and icon
+                                        const weatherCodeMap: Record<number, { desc: string, icon: string }> = {
+                                            0: { desc: 'Clear sky', icon: '☀️' },
+                                            1: { desc: 'Mainly clear', icon: '🌤️' },
+                                            2: { desc: 'Partly cloudy', icon: '⛅' },
+                                            3: { desc: 'Overcast', icon: '☁️' },
+                                            45: { desc: 'Fog', icon: '🌫️' },
+                                            48: { desc: 'Depositing rime fog', icon: '🌫️' },
+                                            51: { desc: 'Drizzle: Light', icon: '🌦️' },
+                                            53: { desc: 'Drizzle: Moderate', icon: '🌦️' },
+                                            55: { desc: 'Drizzle: Dense', icon: '🌦️' },
+                                            56: { desc: 'Freezing Drizzle: Light', icon: '🌧️' },
+                                            57: { desc: 'Freezing Drizzle: Dense', icon: '🌧️' },
+                                            61: { desc: 'Rain: Slight', icon: '🌦️' },
+                                            63: { desc: 'Rain: Moderate', icon: '🌧️' },
+                                            65: { desc: 'Rain: Heavy', icon: '🌧️' },
+                                            66: { desc: 'Freezing Rain: Light', icon: '🌧️' },
+                                            67: { desc: 'Freezing Rain: Heavy', icon: '🌧️' },
+                                            71: { desc: 'Snow fall: Slight', icon: '❄️' },
+                                            73: { desc: 'Snow fall: Moderate', icon: '❄️' },
+                                            75: { desc: 'Snow fall: Heavy', icon: '❄️' },
+                                            77: { desc: 'Snow grains', icon: '❄️' },
+                                            80: { desc: 'Rain showers: Slight', icon: '🌦️' },
+                                            81: { desc: 'Rain showers: Moderate', icon: '🌧️' },
+                                            82: { desc: 'Rain showers: Violent', icon: '🌧️' },
+                                            85: { desc: 'Snow showers: Slight', icon: '❄️' },
+                                            86: { desc: 'Snow showers: Heavy', icon: '❄️' },
+                                            95: { desc: 'Thunderstorm: Slight/Moderate', icon: '⛈️' },
+                                            96: { desc: 'Thunderstorm: Hail', icon: '⛈️' },
+                                            99: { desc: 'Thunderstorm: Heavy hail', icon: '⛈️' },
+                                        };
+                                        let time = '--', reason = 'Wet', icon = '🌧️', weatherDesc = '';
+                                        const code = weather.daily.weathercode[idx];
+                                        if (found) {
+                                            time = found;
+                                            reason = 'Hot & Dry';
+                                            icon = '☀️';
+                                        } else if (hours.some((hour: { t: string, i: number }) => weather.hourly.precipitation[hour.i] < 0.1)) {
+                                            // If at least one hour is dry but not hot
+                                            const dryHour = hours.find((hour: { t: string, i: number }) => weather.hourly.precipitation[hour.i] < 0.1);
+                                            time = dryHour ? dryHour.t.split('T')[1].slice(0, 5) : '--';
+                                            reason = 'Mild & Dry';
+                                            icon = '⛅';
+                                        }
+                                        if (weatherCodeMap[code]) {
+                                            weatherDesc = weatherCodeMap[code].desc;
+                                            icon = weatherCodeMap[code].icon;
+                                        }
+                                        return (
+                                            <div key={date} className="flex flex-col items-center flex-1 min-w-[45vw] max-w-[100vw] sm:min-w-[90px] sm:max-w-[120px] bg-white/60 backdrop-blur rounded-xl p-2 shadow border border-white/30">
+                                                <div className="text-lg font-semibold text-sky-800 drop-shadow">{day}</div>
+                                                <div className="text-base font-bold text-black">{time}</div>
+                                                <div className="text-2xl">{icon}</div>
+                                                <div className="text-xs text-sky-700">{reason}</div>
+                                                <div className="text-xs text-gray-500 italic">{weatherDesc}</div>
+                                                <div className="text-[10px] text-gray-400">Why? {reason === 'Hot & Dry' ? t.whyBest : reason === 'Mild & Dry' ? t.whyOk : t.whyNo}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                             <div className="mb-2">
                                 <div className="text-xs text-gray-500 font-mono">{t.debug}</div>
                                 <ul className="text-xs text-gray-700 bg-sky-50/80 rounded p-2 max-h-24 overflow-y-auto border border-sky-100/60">

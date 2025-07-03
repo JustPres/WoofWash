@@ -47,6 +47,7 @@ export default function RootLayout({
     <html lang={lang}>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/svg+xml" href="/dog-weather-favicon.svg" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
         <meta name="theme-color" content="#f3f4f6" />
