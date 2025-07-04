@@ -44,8 +44,7 @@ export default function Home() {
 	const [notifEnabled, setNotifEnabled] = useState(false);
 	const [notifLoading, setNotifLoading] = useState(false);
 	const [notifError, setNotifError] = useState<string | null>(null);
-
-
+	const [showTipModal, setShowTipModal] = useState(false);
 
 	useEffect(() => {
 		if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -81,8 +80,6 @@ export default function Home() {
 
 	return (
 		<main className="min-h-screen flex flex-col items-center justify-center p-4" aria-label="Home page main content">
-
-
 			<div className="absolute top-4 right-4 flex items-center gap-4">
 				<label
 					htmlFor="lang-picker"
@@ -147,6 +144,34 @@ export default function Home() {
 					{t.viewSchedule}
 				</Link>
 			</div>
+
+			{/* Tip the Dog Floating Button */}
+			<button
+				type="button"
+				onClick={() => setShowTipModal(true)}
+				className="fixed bottom-6 right-6 z-50 bg-white/60 backdrop-blur-md border border-white/40 shadow-xl w-16 h-16 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-sky-400 hover:bg-white/80 group cursor-pointer"
+				aria-label="Tip the Dog"
+			>
+				<img src="/jar.png" alt="Tip Jar" className="w-8 h-8 transition-transform duration-300 group-hover:rotate-12" />
+			</button>
+
+			{/* Tip Modal */}
+			{showTipModal && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+					<div className="bg-white rounded-2xl shadow-2xl p-6 max-w-xs w-full flex flex-col items-center relative animate-fade-in">
+						<button
+							onClick={() => setShowTipModal(false)}
+							className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold focus:outline-none cursor-pointer"
+							aria-label="Cancel"
+						>
+							&times;
+						</button>
+						<img src="/qrcode.jpg" alt="GCash/Instapay QR code for WoofWash" className="w-full max-w-xs h-auto rounded mb-4 border border-gray-200" />
+						<div className="text-lg font-bold text-sky-900 mb-2 text-center">Tip the Dog!</div>
+						<div className="text-gray-700 text-center mb-2">Scan this QR code with your GCash or InstaPay app to send a tip. Thank you for supporting WoofWash!</div>
+					</div>
+				</div>
+			)}
 		</main>
 	);
 }
