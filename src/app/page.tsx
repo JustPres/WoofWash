@@ -13,7 +13,7 @@ const languages = [
 
 const translations: Record<string, Record<string, string>> = {
 	en: {
-		title: "Bath Schedule App",
+		title: "WoofWash",
 		welcome:
 			"Welcome! Start by adding your dog info to get personalized bath schedules.",
 		getStarted: "Get Started",
@@ -21,7 +21,7 @@ const translations: Record<string, Record<string, string>> = {
 		language: "Language:",
 	},
 	fil: {
-		title: "App ng Iskedyul ng Paliligo",
+		title: "WoofWash",
 		welcome:
 			"Maligayang pagdating! Simulan sa pagdagdag ng impormasyon ng iyong aso para sa personalisadong iskedyul ng paliligo.",
 		getStarted: "Simulan",
@@ -29,7 +29,7 @@ const translations: Record<string, Record<string, string>> = {
 		language: "Wika:",
 	},
 	ja: {
-		title: "犬の入浴スケジュールアプリ",
+		title: "WoofWash",
 		welcome:
 			"ようこそ！犬の情報を追加して、パーソナライズされた入浴スケジュールを取得しましょう。",
 		getStarted: "はじめる",
