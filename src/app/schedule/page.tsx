@@ -18,7 +18,7 @@ const translations: Record<string, Record<string, string>> = {
         lastUpdated: "Last updated:",
         loadingWeather: "Loading weather...",
         noDogs: "No dogs found",
-        addDogInfo: "To view your dog’s bath schedule, please add your dog’s information first.",
+        addDogInfo: "To view your dog's bath schedule, please add your dog's information first.",
         editDog: "Edit Dog Info",
         home: "Home",
         enableNotif: "🔕 Enable Notifications",
@@ -112,7 +112,17 @@ export default function Schedule() {
     const { lang } = useContext(LanguageContext);
     const t = translations[lang] || translations.en;
 
-    const [dogs, setDogs] = useState<Array<{ name: string, breed?: string, origin?: string, furType?: string, country?: string, photo?: string, bathTimePref?: string }>>([]);
+    const [dogs, setDogs] = useState<Array<{
+        name: string,
+        breed?: string,
+        origin?: string,
+        furType?: string,
+        country?: string,
+        photo?: string,
+        bathTimePref?: string,
+        bathsPerWeek?: string,
+        vetNotes?: string
+    }>>([]);
     const [selectedDogIdx, setSelectedDogIdx] = useState<number>(0);
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [city, setCity] = useState<string>("");
@@ -510,13 +520,10 @@ export default function Schedule() {
                                 <div className="flex flex-wrap justify-between mb-4 gap-2">
                                     {weather.daily.time.map((date: string, idx: number) => {
                                         const day = new Date(date).toLocaleDateString(undefined, { weekday: 'short' });
-                                        // Get bath time preference for selected dog
                                         const bathTimePref = dogs[selectedDogIdx]?.bathTimePref || "morning";
-                                        // Set hour range based on preference
                                         let hourStart = 9, hourEnd = 17;
                                         if (bathTimePref === "morning") { hourStart = 9; hourEnd = 12; }
                                         else if (bathTimePref === "afternoon") { hourStart = 12; hourEnd = 17; }
-                                        // For custom, keep 9-17 for now (can be extended)
                                         const hours = weather.hourly.time
                                             .map((t: string, i: number) => ({ t, i }))
                                             .filter((hour: { t: string, i: number }) => {
@@ -524,17 +531,15 @@ export default function Schedule() {
                                                 const hourNum = Number(hour.t.split('T')[1].split(':')[0]);
                                                 return hourNum >= hourStart && hourNum <= hourEnd;
                                             });
-                                        // Check if any hour in this window is hot and dry
                                         let found = null;
                                         for (const hour of hours) {
                                             const temp = weather.hourly.temperature_2m[hour.i];
                                             const precip = weather.hourly.precipitation[hour.i];
                                             if (temp > 30 && precip < 0.1) {
-                                                found = hour.t.split('T')[1].slice(0, 5); // e.g. '15:00'
+                                                found = hour.t.split('T')[1].slice(0, 5);
                                                 break;
                                             }
                                         }
-                                        // Weathercode mapping for user-friendly description and icon
                                         const weatherCodeMap: Record<number, { desc: string, icon: string }> = {
                                             0: { desc: 'Clear sky', icon: '☀️' },
                                             1: { desc: 'Mainly clear', icon: '🌤️' },
@@ -572,7 +577,6 @@ export default function Schedule() {
                                             reason = 'Hot & Dry';
                                             icon = '☀️';
                                         } else if (hours.some((hour: { t: string, i: number }) => weather.hourly.precipitation[hour.i] < 0.1)) {
-                                            // If at least one hour is dry but not hot
                                             const dryHour = hours.find((hour: { t: string, i: number }) => weather.hourly.precipitation[hour.i] < 0.1);
                                             time = dryHour ? dryHour.t.split('T')[1].slice(0, 5) : '--';
                                             reason = 'Mild & Dry';
@@ -582,8 +586,11 @@ export default function Schedule() {
                                             weatherDesc = weatherCodeMap[code].desc;
                                             icon = weatherCodeMap[code].icon;
                                         }
+                                        const today = new Date();
+                                        const cardDate = new Date(date);
+                                        const isToday = today.getFullYear() === cardDate.getFullYear() && today.getMonth() === cardDate.getMonth() && today.getDate() === cardDate.getDate();
                                         return (
-                                            <div key={date} className="flex flex-col items-center flex-1 min-w-[45vw] max-w-[100vw] sm:min-w-[90px] sm:max-w-[120px] bg-white/60 backdrop-blur rounded-xl p-2 shadow border border-white/30">
+                                            <div key={date} className={`flex flex-col items-center flex-1 min-w-[45vw] max-w-[100vw] sm:min-w-[90px] sm:max-w-[120px] bg-white/60 backdrop-blur rounded-xl p-2 shadow border border-white/30 ${isToday ? 'border-2 border-sky-500 bg-sky-100 shadow-3xl scale-105 -rotate-2 z-10' : ''}`} style={isToday ? { transform: 'perspective(600px) rotateY(-6deg) scale(1.05)' } : {}}>
                                                 <div className="text-lg font-semibold text-sky-800 drop-shadow">{day}</div>
                                                 <div className="text-base font-bold text-black">{time}</div>
                                                 <div className="text-2xl">{icon}</div>

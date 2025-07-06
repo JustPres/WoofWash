@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LanguageContext } from "@/context/LanguageContext";
 import Image from "next/image";
+import { getTimeOfDay, getTitleTextColorClass, type TimeOfDay } from "@/utils/timeOfDay";
 
 const furTypes = [
     "Short Single Coat",
@@ -86,6 +87,7 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
     const [country, setCountry] = useState("PH");
     const [formError, setFormError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
 
     const { lang } = useContext(LanguageContext) as { lang: string };
     const t = translations[lang] || translations.en;
@@ -103,6 +105,13 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
             }
         }
     }, [dogId]);
+
+    // Time of day effect
+    useEffect(() => {
+        setTimeOfDay(getTimeOfDay());
+        const interval = setInterval(() => setTimeOfDay(getTimeOfDay()), 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleChange = (field: string, value: string) => {
         setDog(prev => ({ ...prev, [field]: value }));
@@ -156,7 +165,7 @@ export default function EditDog({ params }: { params: Promise<{ id: string }> })
     return (
         <main className="min-h-screen w-full flex flex-col items-center justify-center p-0">
             <div className="w-full max-w-xl min-h-[50vh] bg-white/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/30 flex flex-col">
-                <h2 className="text-2xl font-extrabold mb-4 text-sky-900 drop-shadow">{t.editDog}</h2>
+                <h2 className={`text-2xl font-extrabold mb-4 ${getTitleTextColorClass(timeOfDay)} drop-shadow`}>{t.editDog}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <label htmlFor="dog-name" className="block mb-1 font-semibold flex items-center gap-1 text-black">
                         {t.name}

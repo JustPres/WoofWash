@@ -4,6 +4,7 @@ import { subscribeUserToPush, unsubscribeUserFromPush } from "@/utils/notificati
 import { LanguageContext } from "@/context/LanguageContext";
 import Link from "next/link";
 import { BellIcon as BellOutline, BellAlertIcon as BellSolid } from "@heroicons/react/24/outline";
+import { getTimeOfDay, getTextColorClass, getTitleTextColorClass, type TimeOfDay } from "@/utils/timeOfDay";
 
 const languages = [
 	{ code: "en", label: "English" },
@@ -45,11 +46,19 @@ export default function Home() {
 	const [notifLoading, setNotifLoading] = useState(false);
 	const [notifError, setNotifError] = useState<string | null>(null);
 	const [showTipModal, setShowTipModal] = useState(false);
+	const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
 
 	useEffect(() => {
 		if (typeof window !== 'undefined' && 'Notification' in window) {
 			setNotifEnabled(Notification.permission === 'granted');
 		}
+	}, []);
+
+	// Time of day effect
+	useEffect(() => {
+		setTimeOfDay(getTimeOfDay());
+		const interval = setInterval(() => setTimeOfDay(getTimeOfDay()), 60 * 1000);
+		return () => clearInterval(interval);
 	}, []);
 
 	const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -83,7 +92,7 @@ export default function Home() {
 			<div className="absolute top-4 right-4 flex items-center gap-4">
 				<label
 					htmlFor="lang-picker"
-					className="language-label mr-2 text-sky-800 font-semibold"
+					className={`language-label mr-2 ${getTextColorClass(timeOfDay)} font-semibold`}
 					id="lang-picker-label"
 				>
 					{t.language}
@@ -122,10 +131,10 @@ export default function Home() {
 				</button>
 			</div>
 			{notifError && <div className="text-red-600 mt-2">{notifError}</div>}
-			<h1 className="text-3xl font-bold mb-2 text-sky-900" tabIndex={0} aria-label={t.title}>
+			<h1 className={`text-3xl font-bold mb-2 ${getTitleTextColorClass(timeOfDay)}`} tabIndex={0} aria-label={t.title}>
 				{t.title}
 			</h1>
-			<p className="mb-6 text-sky-800" tabIndex={0} aria-label={t.welcome}>
+			<p className={`mb-6 ${getTextColorClass(timeOfDay)}`} tabIndex={0} aria-label={t.welcome}>
 				{t.welcome}
 			</p>
 			<div className="flex gap-4">

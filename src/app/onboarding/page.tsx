@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { PlusIcon } from "@heroicons/react/24/solid";
+import { getTimeOfDay, getTitleTextColorClass, type TimeOfDay } from "@/utils/timeOfDay";
 
 const furTypes = [
     "Short Single Coat",
@@ -83,10 +84,18 @@ export default function Onboarding() {
     const [lang, setLang] = useState("en");
     const t = translations[lang] || translations.en;
     const [fabRotating, setFabRotating] = useState(false);
+    const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
 
     useEffect(() => {
         const stored = localStorage.getItem("lang");
         if (stored) setLang(stored);
+    }, []);
+
+    // Time of day effect
+    useEffect(() => {
+        setTimeOfDay(getTimeOfDay());
+        const interval = setInterval(() => setTimeOfDay(getTimeOfDay()), 60 * 1000);
+        return () => clearInterval(interval);
     }, []);
 
     // ...existing code...
@@ -208,7 +217,7 @@ export default function Onboarding() {
                 >
                     ← Back
                 </button>
-                <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 text-sky-900 drop-shadow text-center">{t.onboardingTitle}</h2>
+                <h2 className={`text-2xl sm:text-3xl font-extrabold mb-4 ${getTitleTextColorClass(timeOfDay)} drop-shadow text-center`}>{t.onboardingTitle}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     {dogs.map((dog, idx) => (
                         <div key={idx} className="bg-white/60 backdrop-blur rounded-xl p-2 sm:p-4 mb-2 border border-white/30 shadow flex flex-col gap-2 relative">
@@ -324,6 +333,7 @@ export default function Onboarding() {
                             <select className="w-full border p-2 rounded text-black bg-white/80 text-sm sm:text-base" value={dog.country} onChange={e => handleCountryChange(idx, e.target.value)}>
                                 {countryList.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                             </select>
+
                             {dogs.length > 1 && (
                                 <button type="button" onClick={() => removeDog(idx)} className="absolute top-2 right-2 text-red-500 text-xl bg-white/70 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-100 transition">&times;</button>
                             )}
